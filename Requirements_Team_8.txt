@@ -1,1 +1,22 @@
-Place holder for protocol requirements
+BGP Protocol Requirements
+
+Client/Server Requirements:
+    Stateful: Both client and server must implement, check and validate the statefulness of the BGP protocol DFA.
+        Client: <file(s) or location(s) in code>
+        Server: <file(s) or location(s) in code>
+
+Server-specific Requirements:
+
+    Concurrent: Server must be able to handle multiple clients.
+        Server: <file(s) or location(s) in code>
+
+    Service: The server must bind to a hardcoded port number and the client defaults to that port number.
+        Server: <file(s) or location(s) in code>
+
+Client-specific Requirements:
+
+    IP and hostname: Client must be able to specify the hostname and/or the IP address of the server.
+        Client: <file(s) or location(s) in code>
+
+    UI: The client shall implement a command line interface (up for debate, just putting it in for now)
+        Client: <file(s) or location(s) in code>
