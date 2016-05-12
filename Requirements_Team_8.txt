@@ -13,6 +13,24 @@ Server-specific Requirements:
     Service: The server must bind to a hardcoded port number and the client defaults to that port number.
         Server: <file(s) or location(s) in code>
 
+    Game Type Validation: The server must handle incoming NEWGAMETYPE messages and validate the game type contained in the message.
+        Server: <file(s) or location(s) in code>
+	
+    Forward MOVE as OPPMOVE: The server must handle incoming MOVE message and forward contained information in OPPMOVE message.
+        Server: <file(s) or location(s) in code>
+
+    Forward REQMOVE: The server must handling incoming REQMOVE message as is.
+        Server: <file(s) or location(s) in code>
+
+    Sender/Receiver Message Authentication: The server must authentication messages sender and receivers for game, once Client IDs have been generated and handed out.
+        Server: <file(s) or location(s) in code>
+
+    Client ID Assignment: The server must generate 32-bit randomly generated Client IDs.
+        Server: <file(s) or location(s) in code>
+
+    Game End Two Way Handshake: The server must be able to handle/start two way game end handshake.
+        Server: <file(s) or location(s) in code>
+
 Client-specific Requirements:
 
     IP and hostname: Client must be able to specify the hostname and/or the IP address of the server.
