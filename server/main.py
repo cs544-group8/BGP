@@ -26,7 +26,7 @@ def main(argv):
         elif opt == '-p':
             listening_port = int(arg)
 
-    #bind the socker to the server address
+    #bind the socket to the server address
     server_addr = (server_name, listening_port)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
