@@ -15,14 +15,14 @@ Server-specific Requirements:
 
     Game Type Validation: The server must handle incoming NEWGAMETYPE messages and validate the game type contained in the message.
         Server: <file(s) or location(s) in code>
-	
+
     Forward MOVE as OPPMOVE: The server must handle incoming MOVE message and forward contained information in OPPMOVE message.
         Server: <file(s) or location(s) in code>
 
     Forward REQMOVE: The server must handling incoming REQMOVE message as is.
         Server: <file(s) or location(s) in code>
 
-    Sender/Receiver Message Authentication: The server must authentication messages sender and receivers for game, once Client IDs have been generated and handed out.
+    Sender/Receiver Message Authentication: The server must authenticate the client id in messages after the Client ID Assigned state has been reached.
         Server: <file(s) or location(s) in code>
 
     Client ID Assignment: The server must generate 32-bit randomly generated Client IDs.
