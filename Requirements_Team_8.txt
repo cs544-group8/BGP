@@ -19,16 +19,19 @@ Server-specific Requirements:
     Forward MOVE as OPPMOVE: The server must handle incoming MOVE message and forward contained information in OPPMOVE message.
         Server: <file(s) or location(s) in code>
 
-    Forward REQMOVE: The server must handling incoming REQMOVE message as is.
+    Forward REQMOVE: The server must handle incoming REQMOVE message as is.
         Server: <file(s) or location(s) in code>
 
-    Sender/Receiver Message Authentication: The server must authenticate the client id in messages after the Client ID Assigned state has been reached.
+    Sender/Receiver Message Authentication: The server must authenticate the Client ID in messages after the "Client ID Assigned" state has been reached.
         Server: <file(s) or location(s) in code>
 
-    Client ID Assignment: The server must generate 32-bit randomly generated Client IDs.
+    Client ID Generation: The server must generate random 32-bit Client IDs.
         Server: <file(s) or location(s) in code>
 
     Game End Two Way Handshake: The server must be able to handle/start two way game end handshake.
+        Server: <file(s) or location(s) in code>
+
+    Find Opponent: The server must be able to detect two clients who are both waiting in the "Finding Opponent" state.
         Server: <file(s) or location(s) in code>
 
 Client-specific Requirements:
