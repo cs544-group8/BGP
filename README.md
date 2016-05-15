@@ -2,8 +2,11 @@
 
 ## How to build and run BGP Protocol
 ###Server
-    python threadedserver.py -p <port number>
-        -will listen on all interfaces on the machine it is running on.  Meaning you could ping the server at localhost:<port number> or at the external IP assigned by your router on your LAN
+
+`python threadedserver.py -p <port number>`
+
+Will listen on all interfaces on the machine it is running on.  Meaning you could ping the server at `localhost:<port number>` or at the IP address your router has assigned to you on your LAN.
+
 ###Client
 
 ## Protocol Requirements
