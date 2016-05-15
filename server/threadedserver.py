@@ -56,6 +56,6 @@ if __name__ == '__main__':
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print "\nCleaning up server and shutting down"
+        print "\nShutting down server loop and cleaning up"
         server.shutdown()
         server.server_close()
