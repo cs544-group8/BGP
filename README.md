@@ -2,7 +2,7 @@
 
 ## How to build and run BGP Protocol
 ###Server
-    python main.py -h <hostname> -p <listening port>
+    python threadedserver.py -p <port number> (defaults to localhost for now)
 ###Client
 
 ## Protocol Requirements
