@@ -28,7 +28,13 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
         return
 
 class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    pass
+    #allow ctrl-c to kill all spawned threads
+    daemon_threads = True
+    #eliminates a port rebinding error when you repeatedly start/stop the server in quick succession
+    allow_reuse_address = True
+
+    def __init__(self, server_address, RequestHandlerClass):
+        SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == '__main__':
     argv = sys.argv[1:]
@@ -46,9 +52,7 @@ if __name__ == '__main__':
         if opt == '-p':
             port = int(arg)
 
-    #eliminates an error thrown if you repeatedly start and stop the server in quick succession
-    ThreadedServer.allow_reuse_address = True
-    server = ThreadedServer(('localhost', port), ThreadedRequestHandler)
+    server = ThreadedServer(('', port), ThreadedRequestHandler)
     ip, port = server.server_address
     print 'Server running at {} on port {}'.format(ip, port)
 
@@ -56,6 +60,6 @@ if __name__ == '__main__':
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print "\nCleaning up server and shutting down"
+        print "\nShutting down server loop and cleaning up"
         server.shutdown()
         server.server_close()
