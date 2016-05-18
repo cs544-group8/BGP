@@ -16,7 +16,7 @@ import threading
 import SocketServer
 import getopt
 import sys
-import parse_message
+import message_parsing
 
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
@@ -25,7 +25,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
         cur_thread = threading.currentThread()
         print '{} handling message sent from: {}'.format(cur_thread.getName(), self.client_address)
 
-        msg_revd = parse_message.parse_message(data)
+        msg_revd = message_parsing.parse_message(data)
         print "new message received: {}".format(msg_revd)
 
         return

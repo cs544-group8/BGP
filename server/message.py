@@ -1,10 +1,18 @@
-# Message class object definition
+#!/usr/bin/python
 
-class Messsage(object):
+#CS544 - Computer Networks
+#Group 8
+#BGP Protocol
+#Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
+
+#Module name: message
+#Description: defines a Message object to be used throughout the server - raw data will be parsed and instantiated into an object where the fields of a message are easy to access
+
+class Message(object):
     '''
     Class used to represent a sturcture of the data contained in a message
     '''
-    def __init__(self, version, message_type, payload=None, client_id=None):
+    def __init__(self, version, message_type, length, client_id=None, payload=None,):
         '''
         Intialization function of message class object.
         Input:
@@ -15,5 +23,9 @@ class Messsage(object):
         '''
         self.version = version
         self.message_type = message_type
+        self.length = length
         self.payload = payload
         self.client_id = client_id
+
+    def __repr__(self):
+        return "Version: {}, Msg Type: {}, Length: {}, ClientID: {}, Payload: {}".format(self.version, self.message_type, self.length, self.client_id, self.payload)
