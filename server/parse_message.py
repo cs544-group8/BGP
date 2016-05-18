@@ -9,7 +9,6 @@
 #Description: exposes an object for holding messages and a function for parsing raw data received by the server
 
 import struct
-import binascii
 
 class Message:
 

@@ -13,7 +13,6 @@
 import socket
 import sys
 import struct
-from ctypes import *
 import binascii
 
 HOST,PORT = "localhost", 9999
