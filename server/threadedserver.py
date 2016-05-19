@@ -6,7 +6,7 @@
 #Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
 #Module name: threadedserver
-#Description: Starts a TCPServer on the port passed in and waits for connections.  Each connection is handled in it's own thread by the ThreadRequestHandler class (handle() method)
+#Description: Starts a TCPServer on the port passed in and waits for connections.  Each connection is handled in it's own thread by the ThreadedRequestHandler class (handle() method)
 
 #to start the server: python threadedserver.py -p <port number>
 
