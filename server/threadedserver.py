@@ -6,7 +6,7 @@
 #Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
 #Module name: threadedserver
-#Basic Description: Starts a TCPServer on the port passed in and waits for connections.  Each connection is handled in it's own thread by the ThreadRequestHandler class (handle() method)
+#Description: Starts a TCPServer on the port passed in and waits for connections.  Each connection is handled in it's own thread by the ThreadedRequestHandler class (handle() method)
 
 #to start the server: python threadedserver.py -p <port number>
 
@@ -16,15 +16,18 @@ import threading
 import SocketServer
 import getopt
 import sys
+import message_parsing
 
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        self.data = self.request.recv(1024)
+        data = self.request.recv(1024)
         cur_thread = threading.currentThread()
+        print '{} handling message sent from: {}'.format(cur_thread.getName(), self.client_address)
 
-        #prints the current thread name, the client who sent the data, and the data itself
-        print 'Handled in {}, {} sent: \n{}'.format(cur_thread.getName(), self.client_address, self.data)
+        msg_revd = message_parsing.parse_message(data)
+        print "new message received: {}".format(msg_revd)
+
         return
 
 class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
