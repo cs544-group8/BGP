@@ -45,14 +45,17 @@ void Client::run()
                 
             case RECV_MOVE:
                 m_client_state = incomingMove();
+                drawLine();
                 break;
                 
             case SEND_MOVE:
                 m_client_state = outgoingMove();
+                drawLine();
                 break;
                 
             case GAME_END:
                 m_client_state = gameOver();
+                drawLine();
                 break;
                 
             default:
@@ -179,6 +182,11 @@ int Client::gameOver()
     send("Sent reason for game over");
     cout << "Quitting application..." << endl;
     return -1;
+}
+
+void Client::drawLine()
+{
+    cout << "----------------------------------------------------" << endl;
 }
 
 void Client::send(string message)

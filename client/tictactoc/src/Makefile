@@ -3,11 +3,11 @@ PROGRAM=tictactoe
 all: run
 
 run: build
-	./$(PROGRAM)
+	@./$(PROGRAM)
 
 build:
-	g++ *.cpp -o $(PROGRAM)
+	@g++ *.cpp -o $(PROGRAM)
 
 clean:
-	rm *o
+	@rm *o
 	

@@ -75,7 +75,16 @@ void Game::resetGameboard()
 
 bool Game::validMove(string pos, int player)
 {
-    int position = stoi(pos);
+    int position;
+    
+    try {
+        position = stoi(pos);
+    }
+    
+    catch(std::invalid_argument&) {
+        return false;
+    }
+    
     int row,col;
     if(position < 1 || position > m_width*m_height) // check for valid position on board
         return false;

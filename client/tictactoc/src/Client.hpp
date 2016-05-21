@@ -43,7 +43,7 @@ public:
     int gameOver();
     void send(string message);
     int receive(string message, int data);
-    
+    void drawLine();    
 };
 
 namespace ClientEnums
