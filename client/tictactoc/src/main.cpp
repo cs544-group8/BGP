@@ -10,19 +10,15 @@
 #include "Game.hpp"
 
 using namespace std;
+using namespace ClientEnums;
 
 int main(int argc, const char * argv[]) {
     Game tictactoe(1,3,3);  // game_ID, height, width
+        
+    Client client(tictactoe); // set client game
+
+    client.start(IDLE);
+    client.run();
     
-//    Client client(tictactoc); // set client game
-//    
-//    client.start(IDLE);
-//    client.run();
-    
-//    string input;
-//    cout << "Enter command" << endl;
-//    getline(cin, input);
-//    cout << "You entered: " << input << endl;
-//    std::cout << "Hello, World!\n";
     return 0;
 }

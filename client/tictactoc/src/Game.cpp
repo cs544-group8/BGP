@@ -8,16 +8,36 @@
 
 #include "Game.hpp"
 
+using namespace GameEnums;
+
+Game::Game()
+{
+    m_token.resize(2);
+}
+
 Game::Game(int id, int height, int width)
 {
     m_id = id;
     m_height = height;
     m_width = width;
     m_game_board.resize(m_height);
-    m_token.push_back("x");
-    m_token.push_back("o");
+    m_token.resize(2);
     for(int row = 0; row < m_height; row++)
         m_game_board[row].resize(m_width);
+    resetGameboard();
+    m_token[PLAYER1] = "x";
+    m_token[PLAYER2] = "o";
+}
+
+void Game::operator=(const Game &G)
+{
+    m_id = G.m_id;
+    m_height = G.m_height;
+    m_width = G.m_width;
+    m_game_board.resize(m_height);
+    m_token[PLAYER1] = G.m_token[0];
+    m_token[PLAYER2] = G.m_token[1];
+    m_game_board = G.m_game_board;
 }
 
 Game::~Game()
@@ -65,6 +85,7 @@ bool Game::validMove(string pos, int player)
     
     if(m_game_board[row][col].compare(pos) == 0) {   // check if position available
         m_game_board[row][col] = m_token[player];
+        showBoard();
         return true;
     }
     
@@ -83,5 +104,6 @@ bool Game::isGameOver()
             ++position;
         }
     }
+    
     return true; // no available moves found
 }
