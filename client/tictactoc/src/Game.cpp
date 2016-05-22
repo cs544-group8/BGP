@@ -104,15 +104,31 @@ bool Game::validMove(string pos, int player)
 
 bool Game::isGameOver()
 {
-    int position = 1;    
+    for(int row = 0; row < m_height; row++) {
+        if(m_game_board[row][0] == m_game_board[row][1] && m_game_board[row][0] == m_game_board[row][2])
+            return true; // horizontal victory
+    }
+    
+    for(int col = 0; col < m_width; col++) {
+        if(m_game_board[0][col] == m_game_board[1][col] && m_game_board[0][col] == m_game_board[2][col])
+            return true; // vertical victory
+    }
+    
+    if(m_game_board[0][0] == m_game_board[1][1] && m_game_board[0][0] == m_game_board[2][2])
+        return true; // diagonal victory
+    
+    if(m_game_board[0][2] == m_game_board[1][1] && m_game_board[0][2] == m_game_board[2][0])
+        return true; // diagonal victory
+    
+    int position = 1;
     for(int row = 0; row < m_height; row++) {
         for(int col = 0; col < m_width; col++) {
-            if(m_game_board[row][col].compare(to_string(position)) == 0) {   // check if positions available
-                return false;   // game is not over
+            if(m_game_board[row][col].compare(to_string(position)) == 0) {
+                return false;   // still available moves
             }
             ++position;
         }
     }
     
-    return true; // no available moves found
+    return true;    // no available moves found
 }
