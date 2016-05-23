@@ -1,3 +1,11 @@
+//  CS544 - Computer Networks
+//  Group 8
+//  Copyright © 2016 BGP Protocol
+//  Team Members: Ryan Mann, Brian Quinn, TJ Rhodes, Marc Thomson
+//
+//  File name: game.cpp
+//  Description: Source file for game object. Logic for game is handled here
+
 #include "game.hpp"
 
 using namespace GameEnums;

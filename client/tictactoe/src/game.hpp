@@ -1,3 +1,11 @@
+//  CS544 - Computer Networks
+//  Group 8
+//  Copyright © 2016 BGP Protocol
+//  Team Members: Ryan Mann, Brian Quinn, TJ Rhodes, Marc Thomson
+//
+//  File name: game.hpp
+//  Description: header file for game object
+
 #ifndef game_hpp
 #define game_hpp
 

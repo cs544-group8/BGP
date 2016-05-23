@@ -1,3 +1,11 @@
+//  CS544 - Computer Networks
+//  Group 8
+//  Copyright © 2016 BGP Protocol
+//  Team Members: Ryan Mann, Brian Quinn, TJ Rhodes, Marc Thomson
+//
+//  File name: game.cpp
+//  Description: Source file for client object. Logic for BGP protocol state is handled here
+
 #include "client.hpp"
 
 using namespace ClientEnums;

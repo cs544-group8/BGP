@@ -1,3 +1,11 @@
+//  CS544 - Computer Networks
+//  Group 8
+//  Copyright © 2016 BGP Protocol
+//  Team Members: Ryan Mann, Brian Quinn, TJ Rhodes, Marc Thomson
+//
+//  File name: main.cpp
+//  Description: 'main' for tictactoe application
+
 #include "client.hpp"
 #include "game.hpp"
 

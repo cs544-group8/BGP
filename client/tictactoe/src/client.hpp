@@ -1,3 +1,11 @@
+//  CS544 - Computer Networks
+//  Group 8
+//  Copyright © 2016 BGP Protocol
+//  Team Members: Ryan Mann, Brian Quinn, TJ Rhodes, Marc Thomson
+//
+//  File name: client.hpp
+//  Description: header file for client object
+
 #ifndef client_hpp
 #define client_hpp
 

@@ -1,1 +1,2 @@
-Run make in tictactoe/src to run tictactoe client application
+README instructions for tictactoe application:
+    Run 'make' command in tictactoe/src directory to run tictactoe client application
