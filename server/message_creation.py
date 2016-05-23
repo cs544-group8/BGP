@@ -33,7 +33,7 @@ def create_message(version, msg_type, payload=None, client_id=None):
     if client_id == None:
         client_id = 0
 
-    message = struct.pack('BBBBi%ds' % length, version, msg_type, length, client_id, reserved, payload)
+    message = struct.pack('BBBBI%ds' % length, version, msg_type, length, client_id, reserved, payload)
     return message
 
 # Server doesn't need to create NEWGAMETYPE Message

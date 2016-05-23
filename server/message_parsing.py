@@ -13,7 +13,7 @@ from message import Message
 
 def parse_message(raw_data):
     #pull out the header and client id first
-    version, msg_type, length, reserved, clientid = struct.unpack_from('BBBBi', raw_data)
+    version, msg_type, length, reserved, clientid = struct.unpack_from('BBBBI', raw_data)
 
     #use the length in the header to parse the variable length payload
     payload = struct.unpack_from('%ds' % length, raw_data[8:])
