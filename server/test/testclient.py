@@ -14,6 +14,8 @@ import socket
 import sys
 import struct
 import binascii
+sys.path.append("../")
+import message_creation
 
 HOST,PORT = "localhost", 9999
 
@@ -21,15 +23,10 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
     sock.connect((HOST,PORT))
-    payload = 'test message'
-    values = (1, 10, len(payload), 0, 12345, payload)
-
-    #BBBBI*s --> 4 unsigned chars, unsigned int, char []
-    s = struct.Struct('BBBBI%ds' % len(payload))
-    packed_data = s.pack(*values)
-    sock.sendall(packed_data)
+    # msg_to_send = message_creation.create_opponent_move_message(1, 12345, "hello")
+    sock.sendall(msg_to_send)
 finally:
     sock.close()
 
-print "Sent ({} bytes): {}".format(s.size,
-    binascii.hexlify(packed_data))
+print "Sent ({} bytes): {}".format(len(msg_to_send),
+    binascii.hexlify(msg_to_send))
