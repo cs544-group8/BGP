@@ -17,6 +17,7 @@ import SocketServer
 import getopt
 import sys
 import message_parsing
+from message_handler import MessageHandler
 
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
@@ -25,8 +26,17 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
         cur_thread = threading.currentThread()
         print '{} handling message sent from: {}'.format(cur_thread.getName(), self.client_address)
 
-        msg_revd = message_parsing.parse_message(data)
-        print "new message received: {}".format(msg_revd)
+        msg_recvd = message_parsing.parse_message(data)
+        print "new message parsed: {}".format(msg_recvd)
+        #self.server refers to the ThreadedServer object which comes as part of this object when we 
+        #get a request
+        handle_msg = self.server.msg_handler.verify_message(msg_recvd)
+
+        if handle_msg:
+            print "new message verified, handing to state machine"
+            #pass message to state machine here
+        else:
+            print "new message is not valid, dropping"
 
         return
 
@@ -37,6 +47,8 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
     def __init__(self, server_address, RequestHandlerClass):
+        #instantiate message handler to be used in the ThreadedRequestHandler
+        self.msg_handler = MessageHandler(1)
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == '__main__':
