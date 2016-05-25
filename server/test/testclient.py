@@ -24,7 +24,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
     sock.connect((HOST,PORT))
-    # msg_to_send = message_creation.create_opponent_move_message(1, 12345, "hello")
+    # msg_to_send = message_creation.create_invalid_game_type_message(1)
     sock.sendall(msg_to_send)
 finally:
     sock.close()
