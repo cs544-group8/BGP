@@ -31,7 +31,7 @@ class Message(object):
         return "Version: {}, Msg Type: {}, Length: {}, ClientID: {}, Payload: {}".format(self.version, self.message_type, self.length, self.client_id, self.payload)
 
 VALGAMETYPE     = 0x9
-NEWGMETYPE      = 0xa
+NEWGAMETYPE      = 0xa
 INVGAMETYPE     = 0xb
 CLIENTIDASSIGN  = 0xc
 FINDOPP         = 0xd
