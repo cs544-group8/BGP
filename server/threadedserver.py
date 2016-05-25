@@ -52,20 +52,8 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == '__main__':
-    argv = sys.argv[1:]
-
-    port = ''
-
-    try:
-        opts, args = getopt.getopt(argv, 'h:p:')
-    except getopt.GetoptError:
-        print 'threadedserver.py -p <port>'
-        sys.exit(2)
-
-    #parse the arg(s)
-    for opt, arg in opts:
-        if opt == '-p':
-            port = int(arg)
+    
+    port = 9999
 
     server = ThreadedServer(('', port), ThreadedRequestHandler)
     ip, port = server.server_address
