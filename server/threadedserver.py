@@ -45,10 +45,10 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                         msg_recvd = message_parsing.parse_message(data)
                         if self.server.msg_handler.verify_message(msg_recvd):
                             if msg_recvd.message_type == message.NEWGAMETYPE:
-                                state = state_machine.ID_ASSIGNED
+                                state = state_machine.ASSIGN_ID
                     else:
                         print "\tRecv got no data"
-                elif state == state_machine.ID_ASSIGNED:
+                elif state == state_machine.ASSIGN_ID:
                     if msg_recvd:
                         if game_type.game_id_check(msg_recvd.payload):
                             client_id = random.randint(1,256)
