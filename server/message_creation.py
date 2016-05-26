@@ -80,6 +80,20 @@ def create_found_opponent_message(version, opponent_ID):
     '''
     return create_message(version, message.FOUNDOPP, payload=opponent_ID)
 
+# Create PLAYERASSIGN Message
+def create_player_assign_message(version, client_id, player_id):
+    '''The function is used to create a player assign message.
+    This function passes through protocol version and player assigned id payload.
+    It also adds PLAYERASSIGN message type for message creation
+
+    Input:
+        Version: Protocol Version
+        Payload: Player Assigned ID
+    Output:
+        Message: return from create_message
+    '''
+    return create_message(version, message.PLAYERASSIGN, client_id=client_id, payload=player_id)
+
 # Create GAMEEND Message
 def create_game_end_message(version, reason, client_id):
     '''The function is used to create a client id assignment message.
