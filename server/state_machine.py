@@ -86,10 +86,6 @@ class StateMachine:
         thread_name = threading.currentThread().getName()
         print "{} - client id: {}: {}".format(thread_name, self.client_id, stmt)
 
-    def setOpponent(self, opp):
-        self.printInfo("in setOpponent: {}".format(opp.client_id))
-        self.opponent_sm = opp
-
     def getCurrentState(self):
         return self.state
 
