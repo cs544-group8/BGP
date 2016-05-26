@@ -14,12 +14,13 @@
 
 import threading
 import SocketServer
+import logging
 import getopt
 import sys
 import random
 import message_parsing
 import message_creation
-from message_handler import MessageHandler
+import message_handler
 import state_machine
 import message
 import game_type
@@ -27,7 +28,7 @@ import game_type
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        print '{} is handling connection from {}'.format(threading.currentThread().getName(), self.client_address)
+        logging.debug("Handling connection from: {}".format(self.client_address))
 
         statemachine = state_machine.StateMachine(self.request, self.server)
         self.server.state_machines.append(statemachine)
@@ -36,7 +37,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
             try:
                 statemachine.run_state_machine()
             except Exception as e_inst:
-                print "Exception: ", e_inst
+                logging.error("Exception occured: {}".format(e_inst))
                 self.request.close()
                 return False
 
@@ -150,13 +151,11 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
     def __init__(self, server_address, RequestHandlerClass):
-        #instantiate message handler to be used in the ThreadedRequestHandler
-        self.msg_handler = MessageHandler(1)
+        self.msg_handler = message_handler.MessageHandler(1)
         self.state_machines = []
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
     def getClientInFindOpp(self, client_id):
-        # print "state_machines length: {}".format(len(self.state_machines))
         while True:
             for sm in self.state_machines:
                 if(sm.getCurrentState() == state_machine.FIND_OPPONENT and sm.getClientID() != client_id):
@@ -164,16 +163,19 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == '__main__':
 
+    #configure logging so we have thread names in our print statements automatically
+    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:(%(threadName)s) - %(message)s')
+
     port = 9999
 
     server = ThreadedServer(('', port), ThreadedRequestHandler)
     ip, port = server.server_address
-    print 'Server running at {} on port {}'.format(ip, port)
+    logging.info('Server running at {} on port {}'.format(ip, port))
 
     #start it up, catch ctrl+c to end the server loop and clean-up
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print "\nShutting down server loop and cleaning up"
+        logging.info("Shutting down server loop and cleaning up")
         server.shutdown()
         server.server_close()

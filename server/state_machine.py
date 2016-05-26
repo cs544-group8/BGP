@@ -14,6 +14,7 @@ import message_parsing
 import random
 import game_type
 import threading
+import logging
 
 class StateMachine:
 
@@ -33,23 +34,23 @@ class StateMachine:
 
     def run_state_machine(self):
         if self.state == IDLE:
-            self.printInfo("current state: Idle")
+            logging.debug("Current state: Idle")
             data = self.clientsocket.recv(1024)
             if data:
                 self.msg_recvd = message_parsing.parse_message(data)
                 handle = self.server.msg_handler.verify_message(self.msg_recvd)
                 if handle:
                     if self.msg_recvd.message_type == message.NEWGAMETYPE:
-                        self.printInfo("\treceived NEWGAMETYPE going to Assign ID")
+                        logging.debug("received NEWGAMETYPE going to Assign ID")
                         self.state = ASSIGN_ID
                 else:
-                    self.printInfo("\tmessage received was invalid, dropping")
+                    logging.debug("message received was invalid, dropping")
         elif self.state == ASSIGN_ID:
-            self.printInfo("current state: Assign ID")
+            logging.debug("current state: Assign ID")
             if self.msg_recvd:
                 if game_type.game_id_check(self.msg_recvd.payload):
 
-                    self.printInfo("\tvalid game type received: {}".format(self.msg_recvd.payload))
+                    logging.debug("valid game type received: {}".format(self.msg_recvd.payload))
                     self.gametype = self.msg_recvd.payload
 
                     self.client_id = str(random.randint(1,256))
@@ -57,34 +58,30 @@ class StateMachine:
                     self.printMessageToSend("CLIENTIDASSIGN", msg_to_send)
                     self.clientsocket.send(msg_to_send)
 
-                    self.printInfo("\tgoing to Find Opponent")
+                    logging.debug("going to Find Opponent")
                     self.state = FIND_OPPONENT
                     self.msg_recvd = None
                 else:
                     #invalid game type
-                    self.printInfo("\tinvalid game type received: {}".format(self.msg_recvd.payload))
+                    logging.debug("invalid game type received: {}".format(self.msg_recvd.payload))
                     msg_to_send = message_creation.create_invalid_game_type_message(self.version)
                     self.printMessageToSend("INVALIDGAMETYPE", msg_to_send)
                     self.clientsocket.send(msg_to_send)
-                    self.printInfo("going to Idle")
+                    logging.debug("going to Idle")
                     self.state = IDLE
                     self.msg_recvd = None
         elif self.state == FIND_OPPONENT:
-            self.printInfo("current state: Find Opponent")
-            self.printInfo("\tlooping until another client is in Find Opponent")
+            logging.debug("current state: Find Opponent")
+            logging.debug("looping until another client is in Find Opponent")
             self.opponent_sm = self.server.getClientInFindOpp(self.client_id)
 
-            self.printInfo("broke out of find opp loop")
-            self.printInfo("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
+            logging.debug("broke out of find opp loop")
+            logging.debug("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
             msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
             self.printMessageToSend("FOUNDOPP", msg_to_send)
             self.clientsocket.send(msg_to_send)
-            self.printInfo("going to Game Start")
+            logging.debug("going to Game Start")
             self.state = GAME_START
-
-    def printInfo(self, stmt):
-        thread_name = threading.currentThread().getName()
-        print "{} - client id: {}: {}".format(thread_name, self.client_id, stmt)
 
     def getCurrentState(self):
         return self.state
@@ -93,7 +90,7 @@ class StateMachine:
         return self.client_id
 
     def printMessageToSend(self, msg_string, msg_struct):
-        self.printInfo("\tsending {}: {}".format(msg_string, message_parsing.parse_message(msg_struct)))
+        logging.debug("sending {}: {}".format(msg_string, message_parsing.parse_message(msg_struct)))
 
 
 #current states
