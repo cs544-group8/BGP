@@ -72,14 +72,10 @@ class StateMachine:
         elif self.state == FIND_OPPONENT:
             self.printInfo("current state: Find Opponent")
             self.printInfo("\tlooping until another client is in Find Opponent")
-            while self.opponent_sm == None:
-                self.opponent_sm = self.server.getClientInFindOpp()
-                #prevent us from finding ourself
-                if self.opponent_sm.getClientID() == self.client_id:
-                    self.opponent_sm = None
+            self.opponent_sm = self.server.getClientInFindOpp(self.client_id)
 
-            #tell the opponent state machine they have been found
-            self.opponent_sm.setOpponent(self)
+            self.printInfo("broke out of find opp loop")
+            self.printInfo("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
             msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
             self.printMessageToSend("FOUNDOPP", msg_to_send)
             self.clientsocket.send(msg_to_send)

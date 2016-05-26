@@ -13,7 +13,6 @@
 import socket
 import sys
 import struct
-import binascii
 
 sys.path.append("../")
 import message_creation
@@ -32,14 +31,15 @@ try:
             break
         if line == '1':
             msg_to_send = message_creation.create_message(1, message.NEWGAMETYPE, payload="1")
-            print "sent new game type message ({} bytes): {}".format(len(msg_to_send), binascii.hexlify(msg_to_send))
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
 
             sock.send(msg_to_send)
 
         print 'waiting for data'
-        data = sock.recv(1024)
-        # print "received {}".format(message_parsing.parse_message(data))
-        print "received {}".format(binascii.hexlify(data))
+        while True:
+            data = sock.recv(1024)
+            if data:
+                print "received {}".format(message_parsing.parse_message(data))
 
     sock.close()
 except KeyboardInterrupt:
