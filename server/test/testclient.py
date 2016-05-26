@@ -17,17 +17,30 @@ import binascii
 
 sys.path.append("../")
 import message_creation
+import message
+import message_parsing
 
 HOST,PORT = "localhost", 9999
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((HOST,PORT))
 
 try:
-    sock.connect((HOST,PORT))
-    # msg_to_send = message_creation.create_invalid_game_type_message(1)
-    sock.sendall(msg_to_send)
-finally:
-    sock.close()
+    while True:
+        line = raw_input('> ')
+        if line == ' ':
+            break
+        if line == '1':
+            msg_to_send = message_creation.create_message(1, message.NEWGAMETYPE, payload="1")
+            print "sent new game type message ({} bytes): {}".format(len(msg_to_send), binascii.hexlify(msg_to_send))
 
-print "Sent ({} bytes): {}".format(len(msg_to_send),
-    binascii.hexlify(msg_to_send))
+            sock.send(msg_to_send)
+
+        print 'waiting for data'
+        data = sock.recv(1024)
+        # print "received {}".format(message_parsing.parse_message(data))
+        print "received {}".format(binascii.hexlify(data))
+
+    sock.close()
+except KeyboardInterrupt:
+    sock.close()
