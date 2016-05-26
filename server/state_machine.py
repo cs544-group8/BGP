@@ -73,15 +73,18 @@ class StateMachine:
         elif self.state == FIND_OPPONENT:
             logging.debug("current state: Find Opponent")
             logging.debug("looping until another client is in Find Opponent")
-            self.opponent_sm = self.server.getClientInFindOpp(self.client_id)
-
-            logging.debug("broke out of find opp loop")
+            self.opponent_sm = self.server.findOpponent(self.client_id)
             logging.debug("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
+
             msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
             self.printMessageToSend("FOUNDOPP", msg_to_send)
             self.clientsocket.send(msg_to_send)
+            
             logging.debug("going to Game Start")
             self.state = GAME_START
+        elif self.state = GAME_START
+            logging.debug("Current state: Game Start")
+
 
     def getCurrentState(self):
         return self.state

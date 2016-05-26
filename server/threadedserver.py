@@ -155,8 +155,11 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.state_machines = []
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
-    def getClientInFindOpp(self, client_id):
+    #iterates through the state machines and attempts to find a state machine that doesn't
+    #match the client_id passed in that is in the FIND_OPPONENT state (matches two clients)
+    def findOpponent(self, client_id):
         while True:
+            logging.debug("looking for opponents in find opp state")
             for sm in self.state_machines:
                 if(sm.getCurrentState() == state_machine.FIND_OPPONENT and sm.getClientID() != client_id):
                     return sm

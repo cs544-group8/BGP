@@ -42,5 +42,8 @@ try:
                 print "received {}".format(message_parsing.parse_message(data))
 
     sock.close()
+except socket.error:
+	print "server closed connection, shutting down"
+	sock.close()
 except KeyboardInterrupt:
     sock.close()
