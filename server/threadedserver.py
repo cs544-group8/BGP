@@ -28,9 +28,9 @@ import game_type
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        logging.debug("Handling connection from: {}".format(self.client_address))
+        logging.info("Handling connection from: {}".format(self.client_address))
 
-        statemachine = state_machine.StateMachine(self.request, self.server)
+        statemachine = state_machine.StateMachine(self.server.version, self.request, self.server)
         self.server.addStateMachineToList(statemachine)
 
         while True:
@@ -149,10 +149,12 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     daemon_threads = True
     #eliminates a port rebinding error when you repeatedly start/stop the server in quick succession
     allow_reuse_address = True
+    #hard coded version to be used throughout the protocol
+    version = 0x1
 
     def __init__(self, server_address, RequestHandlerClass):
         self.lock = threading.RLock()
-        self.msg_handler = message_handler.MessageHandler(1)
+        # self.msg_handler = message_handler.MessageHandler(1)
         self.state_machines = []
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
@@ -207,7 +209,7 @@ if __name__ == '__main__':
 
     server = ThreadedServer(('', port), ThreadedRequestHandler)
     ip, port = server.server_address
-    logging.info('Server running at {} on port {}'.format(ip, port))
+    logging.info('Server running at {} on port {} using BGP v{}'.format(ip, port, server.version))
 
     #start it up, catch ctrl+c to end the server loop and clean-up
     try:
