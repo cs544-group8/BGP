@@ -23,6 +23,8 @@ HOST,PORT = "localhost", 9999
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((HOST,PORT))
+client_id = 0
+player_num = -1
 
 running = True
 while running:
@@ -32,16 +34,27 @@ while running:
             msg_to_send = message_creation.create_message(1, message.NEWGAMETYPE, payload="1")
             print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
             sock.send(msg_to_send)
+
+            data = sock.recv(1024)
+            msg_recvd = message_parsing.parse_message(data)
+            print "received {}".format(msg_recvd)
+            client_id = int(msg_recvd.payload)
+            
             data = sock.recv(1024)
             print "received {}".format(message_parsing.parse_message(data))
+
             data = sock.recv(1024)
-            print "received {}".format(message_parsing.parse_message(data))
-            data = sock.recv(1024)
-            print "received {}".format(message_parsing.parse_message(data))
+            msg_recvd = message_parsing.parse_message(data)
+            print "received {}".format(msg_recvd)
+            player_num = int(msg_recvd.payload)
+            
+            if player_num == 2:
+                data = sock.recv(1024)
+                print "received {}".format(message_parsing.parse_message(data))
+
         elif line == '6':
-            msg_to_send = message_creation.create_message(1, message.MOVE, 2345, payload="placed 0 at tile 9")
-            data = sock.recv(1024)
-            print "received {}".format(message_parsing.parse_message(data))
+            msg_to_send = message_creation.create_message(1, message.MOVE, client_id=client_id, payload="placed O at position 9")
+            sock.send(msg_to_send)
     except socket.error:
         print "server closed connection, shutting down"
         sock.close()

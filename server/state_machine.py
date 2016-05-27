@@ -18,21 +18,26 @@ import logging
 
 class StateMachine:
 
-    def __init__(self, client_sock, server_inst):
+    def __init__(self, version, client_sock, server_inst):
+        #client socket and server instance references for convenience
         self.clientsocket = client_sock
         self.server = server_inst
 
+        #BGP version from server
+        self.version = version
+
+        #current state of the state machine
         self.state = IDLE
 
-        self.version = 0x1
+        #per game attributes
+        self.gametype = -1
         self.client_id = 0
-        self.gametype = None
-
-        self.msg_recvd = None
-
+        self.player_num = -1
         self.opponent_sm = None
 
-        self.player_num = -1
+        #used for states that receive a message and need to keep it around
+        #for future states
+        self.msg_recvd = None
 
     def run_state_machine(self):
         if self.state == IDLE:
@@ -40,13 +45,12 @@ class StateMachine:
             data = self.clientsocket.recv(1024)
             if data:
                 self.msg_recvd = message_parsing.parse_message(data)
-                handle = self.server.msg_handler.verify_message(self.msg_recvd)
-                if handle:
+                if self.valid_message(self.msg_recvd):
                     if self.msg_recvd.message_type == message.NEWGAMETYPE:
                         logging.debug("received NEWGAMETYPE going to Assign ID")
                         self.state = ASSIGN_ID
                 else:
-                    logging.debug("message received was invalid, dropping")
+                    logging.warning("message received was invalid, dropping")
         elif self.state == ASSIGN_ID:
             logging.debug("current state: Assign ID")
             if self.msg_recvd:
@@ -92,13 +96,25 @@ class StateMachine:
                 self.server.assignPlayerNum(self.client_id)
 
             logging.debug("I was assigned player number {}".format(self.player_num))
-            #send to client
+ 
             msg_to_send = message_creation.create_player_assign_message(self.version, self.client_id, self.player_num)
             self.printMessageToSend("PLAYERASSIGN", msg_to_send)
             self.clientsocket.send(msg_to_send)
 
             logging.debug("going to Game In Progress")
             self.state = GAME_IN_PROGRESS
+        elif self.state == GAME_IN_PROGRESS:
+            logging.debug("Current state: Game In Progress")
+            data = self.clientsocket.recv(1024)
+            if data:
+                msg_recvd = message_parsing.parse_message(data)
+                if self.valid_message(msg_recvd):
+                    if msg_recvd.message_type == message.MOVE:
+                        logging.debug("received MOVE message, forwarding to opponent")
+                        self.printMessageToSend("MOVE", data)
+                        self.opponent_sm.clientsocket.send(data)
+                else:
+                    logging.warning("message received was invalid, dropping")
 
     def setPlayerNum(self, p_id):
         self.player_num = p_id
@@ -120,6 +136,14 @@ class StateMachine:
 
     def printMessageToSend(self, msg_string, msg_struct):
         logging.debug("sending {}: {}".format(msg_string, message_parsing.parse_message(msg_struct)))
+
+    def valid_message(self, msg):
+        if msg.version != self.version:
+            return False
+        elif msg.client_id != self.client_id:
+            logger.error("got here")
+            return False
+        return True
 
 
 #current states
