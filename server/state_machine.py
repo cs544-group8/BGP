@@ -113,6 +113,22 @@ class StateMachine:
                         logging.debug("received MOVE message, forwarding to opponent")
                         self.printMessageToSend("MOVE", data)
                         self.opponent_sm.clientsocket.send(data)
+                    elif msg_recvd.message_type == message.INVMOVE:
+                        logging.debug("received INVMOVE message, forwarding to opponent")
+                        self.printMessageToSend("INVMOVE", data)
+                        self.opponent_sm.clientsocket.send(data)
+                    elif msg_recvd.message_type == message.GAME_END:
+                        logging.debug("received GAMEEND message, forwarding to opponent")
+                        self.printMessageToSend("GAMEEND", data)
+                        self.opponent_sm.clientsocket.send(data)
+                        logging.debug("going to Game End")
+                        self.state = GAME_END
+                    elif msg_recvd.message_type == message.RESET:
+                        logging.debug("received RESET message, forwarding to opponent")
+                        self.printMessageToSend("RESET", data)
+                        self.opponent_sm.clientsocket.send(data)
+                        logging.debug("going to Server Game Reset")
+                        self.state = SERVER_GAME_RESET
                 else:
                     logging.warning("message received was invalid, dropping")
 
@@ -141,7 +157,6 @@ class StateMachine:
         if msg.version != self.version:
             return False
         elif msg.client_id != self.client_id:
-            logger.error("got here")
             return False
         return True
 
