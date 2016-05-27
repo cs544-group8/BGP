@@ -11,7 +11,7 @@
 import struct
 import message
 
-def create_message(version, msg_type, payload=None, client_id=None):
+def create_message(version, msg_type, client_id=None, payload=None):
     '''The function is used to create a message.
     Input:
         Version: Protocol Version
