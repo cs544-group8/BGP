@@ -161,24 +161,37 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.state_machines.append(sm)
         self.lock.release()
 
-    #iterates through the state machines and attempts to find a state machine that doesn't
-    #match the client_id passed in that is in the FIND_OPPONENT state (matches two clients)
+    #thread safe function that matches two client's that are both in Find Opponent state
     def findOpponent(self, client_id):
-        while True:
-            for sm in self.state_machines:
-                if(sm.getCurrentState() == state_machine.FIND_OPPONENT and sm.getClientID() != client_id):
-                    return sm
+
+        #get a reference to the state machine that called this function
+        calling_sm = self.getStateMachineByClientID(client_id)
+        self.lock.acquire()
+        #now search for an opponent
+        viable_opponent = None
+        for sm in self.state_machines:
+            if(sm.getCurrentState() == state_machine.FIND_OPPONENT and sm.getClientID() != client_id):
+                if calling_sm.opponent_sm == None:
+                    calling_sm.setOpponent(sm)
+                    sm.setOpponent(calling_sm)
+                    break
+        self.lock.release()
 
     #helper function to get a state machine object from the list by client_id
     def getStateMachineByClientID(self, client_id):
+        target_sm = None
+        self.lock.acquire()
         for sm in self.state_machines:
             if(sm.getClientID() == client_id):
-                return sm
+                target_sm = sm
+                break
+        self.lock.release()
+        return target_sm
 
     #thread safe function to assign a state machine (and it's opponent) a player number
     def assignPlayerNum(self, client_id):
-        self.lock.acquire()
         sm_to_set = self.getStateMachineByClientID(client_id)
+        self.lock.acquire()
         if sm_to_set.getPlayerNum() == -1:
             sm_to_set.setPlayerNum(1)
             sm_to_set.opponent_sm.setPlayerNum(2)

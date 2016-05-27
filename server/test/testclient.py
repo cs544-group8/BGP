@@ -24,27 +24,29 @@ HOST,PORT = "localhost", 9999
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((HOST,PORT))
 
-try:
-    while True:
+running = True
+while running:
+    try:
         line = raw_input('> ')
-        if line == ' ':
-            break
         if line == '1':
             msg_to_send = message_creation.create_message(1, message.NEWGAMETYPE, payload="1")
             print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
-
             sock.send(msg_to_send)
-
-        print 'waiting for data'
-        while True:
             data = sock.recv(1024)
-            if data:
-                print "received {}".format(message_parsing.parse_message(data))
-
-    sock.close()
-except socket.error:
-	print "server closed connection, shutting down"
-	sock.close()
-except KeyboardInterrupt:
-    print "ctrl+c detected, shutting down"
-    sock.close()
+            print "received {}".format(message_parsing.parse_message(data))
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
+        elif line == '6':
+            msg_to_send = message_creation.create_message(1, message.MOVE, 2345, payload="placed 0 at tile 9")
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
+    except socket.error:
+        print "server closed connection, shutting down"
+        sock.close()
+        running = False
+    except KeyboardInterrupt:
+        print "ctrl+c detected, shutting down"
+        sock.close()
+        running = False

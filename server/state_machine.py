@@ -75,7 +75,9 @@ class StateMachine:
         elif self.state == FIND_OPPONENT:
             logging.debug("current state: Find Opponent")
             logging.debug("looping until another client is in Find Opponent")
-            self.opponent_sm = self.server.findOpponent(self.client_id)
+            while self.opponent_sm == None:
+                self.server.findOpponent(self.client_id)
+
             logging.debug("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
 
             msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
@@ -85,7 +87,7 @@ class StateMachine:
             logging.debug("going to Game Start")
             self.state = GAME_START
         elif self.state == GAME_START:
-            # logging.debug("Current state: Game Start")
+            logging.debug("Current state: Game Start")
             while self.player_num == -1:
                 self.server.assignPlayerNum(self.client_id)
 
@@ -99,15 +101,20 @@ class StateMachine:
                 logging.debug("going to Game In Progress")
                 self.state = GAME_IN_PROGRESS
 
-
     def setPlayerNum(self, p_id):
         self.player_num = p_id
 
     def getPlayerNum(self):
         return self.player_num
 
+    def setCurrentState(self, new_state):
+        self.state = new_state
+
     def getCurrentState(self):
         return self.state
+
+    def setOpponent(self, opp):
+        self.opponent_sm = opp
 
     def getClientID(self):
         return self.client_id
