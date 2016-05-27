@@ -25,12 +25,14 @@ class StateMachine:
         self.state = IDLE
 
         self.version = 0x1
-        self.client_id = None
+        self.client_id = 0
         self.gametype = None
 
         self.msg_recvd = None
 
         self.opponent_sm = None
+
+        self.player_num = -1
 
     def run_state_machine(self):
         if self.state == IDLE:
@@ -53,7 +55,7 @@ class StateMachine:
                     logging.debug("valid game type received: {}".format(self.msg_recvd.payload))
                     self.gametype = self.msg_recvd.payload
 
-                    self.client_id = str(random.randint(1,256))
+                    self.client_id = random.randint(1,256)
                     msg_to_send = message_creation.create_client_id_assign_message(self.version, self.client_id)
                     self.printMessageToSend("CLIENTIDASSIGN", msg_to_send)
                     self.clientsocket.send(msg_to_send)
@@ -79,12 +81,30 @@ class StateMachine:
             msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
             self.printMessageToSend("FOUNDOPP", msg_to_send)
             self.clientsocket.send(msg_to_send)
-            
+
             logging.debug("going to Game Start")
             self.state = GAME_START
-        elif self.state = GAME_START
-            logging.debug("Current state: Game Start")
+        elif self.state == GAME_START:
+            # logging.debug("Current state: Game Start")
+            while self.player_num == -1:
+                self.server.assignPlayerNum(self.client_id)
 
+            if self.player_num != -1:
+                logging.debug("Player number assigned: {}".format(self.player_num))
+                #send to client
+                msg_to_send = message_creation.create_player_assign_message(self.version, self.client_id, self.player_num)
+                self.printMessageToSend("PLAYERASSIGN", msg_to_send)
+                self.clientsocket.send(msg_to_send)
+
+                logging.debug("going to Game In Progress")
+                self.state = GAME_IN_PROGRESS
+
+
+    def setPlayerNum(self, p_id):
+        self.player_num = p_id
+
+    def getPlayerNum(self):
+        return self.player_num
 
     def getCurrentState(self):
         return self.state

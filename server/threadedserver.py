@@ -151,6 +151,7 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
     def __init__(self, server_address, RequestHandlerClass):
+        self.lock = threading.Lock()
         self.msg_handler = message_handler.MessageHandler(1)
         self.state_machines = []
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
@@ -159,10 +160,25 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #match the client_id passed in that is in the FIND_OPPONENT state (matches two clients)
     def findOpponent(self, client_id):
         while True:
-            logging.debug("looking for opponents in find opp state")
             for sm in self.state_machines:
                 if(sm.getCurrentState() == state_machine.FIND_OPPONENT and sm.getClientID() != client_id):
                     return sm
+
+    #helper function to get a state machine object from the list by client_id
+    def getStateMachineByClientID(self, client_id):
+        for sm in self.state_machines:
+            if(sm.getClientID() == client_id):
+                return sm
+
+    #thread safe function to assign a state machine (and it's opponent) a player number
+    def assignPlayerNum(self, client_id):
+        self.lock.acquire()
+        sm_to_set = self.getStateMachineByClientID(client_id)
+        if sm_to_set.getPlayerNum() == -1:
+            sm_to_set.setPlayerNum(1)
+            sm_to_set.opponent_sm.setPlayerNum(2)
+        self.lock.release()
+
 
 if __name__ == '__main__':
 

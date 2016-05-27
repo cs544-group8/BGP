@@ -46,4 +46,5 @@ except socket.error:
 	print "server closed connection, shutting down"
 	sock.close()
 except KeyboardInterrupt:
+    print "ctrl+c detected, shutting down"
     sock.close()
