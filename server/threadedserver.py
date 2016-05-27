@@ -31,7 +31,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
         logging.debug("Handling connection from: {}".format(self.client_address))
 
         statemachine = state_machine.StateMachine(self.request, self.server)
-        self.server.state_machines.append(statemachine)
+        self.server.addStateMachineToList(statemachine)
 
         while True:
             try:
@@ -151,10 +151,15 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
     def __init__(self, server_address, RequestHandlerClass):
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.msg_handler = message_handler.MessageHandler(1)
         self.state_machines = []
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
+
+    def addStateMachineToList(self, sm):
+        self.lock.acquire()
+        self.state_machines.append(sm)
+        self.lock.release()
 
     #iterates through the state machines and attempts to find a state machine that doesn't
     #match the client_id passed in that is in the FIND_OPPONENT state (matches two clients)
