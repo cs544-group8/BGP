@@ -91,15 +91,14 @@ class StateMachine:
             while self.player_num == -1:
                 self.server.assignPlayerNum(self.client_id)
 
-            if self.player_num != -1:
-                logging.debug("Player number assigned: {}".format(self.player_num))
-                #send to client
-                msg_to_send = message_creation.create_player_assign_message(self.version, self.client_id, self.player_num)
-                self.printMessageToSend("PLAYERASSIGN", msg_to_send)
-                self.clientsocket.send(msg_to_send)
+            logging.debug("I was assigned player number {}".format(self.player_num))
+            #send to client
+            msg_to_send = message_creation.create_player_assign_message(self.version, self.client_id, self.player_num)
+            self.printMessageToSend("PLAYERASSIGN", msg_to_send)
+            self.clientsocket.send(msg_to_send)
 
-                logging.debug("going to Game In Progress")
-                self.state = GAME_IN_PROGRESS
+            logging.debug("going to Game In Progress")
+            self.state = GAME_IN_PROGRESS
 
     def setPlayerNum(self, p_id):
         self.player_num = p_id
