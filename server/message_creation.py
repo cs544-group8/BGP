@@ -11,7 +11,7 @@
 import struct
 import message
 
-def create_message(version, msg_type, payload=None, client_id=None):
+def create_message(version, msg_type, client_id=None, payload=None):
     '''The function is used to create a message.
     Input:
         Version: Protocol Version
@@ -64,7 +64,7 @@ def create_client_id_assign_message(version, client_id):
     Output:
         Message: return from create_message
     '''
-    return create_message(version, message.CLIENTIDASSIGN, payload=client_id)
+    return create_message(version, message.CLIENTIDASSIGN, payload=str(client_id))
 
 # Create FOUNDOPP Message
 def create_found_opponent_message(version, opponent_ID):
@@ -78,7 +78,21 @@ def create_found_opponent_message(version, opponent_ID):
     Output:
         Message: return from create_message
     '''
-    return create_message(version, message.FOUNDOPP, payload=opponent_ID)
+    return create_message(version, message.FOUNDOPP, payload=str(opponent_ID))
+
+# Create PLAYERASSIGN Message
+def create_player_assign_message(version, client_id, player_id):
+    '''The function is used to create a player assign message.
+    This function passes through protocol version and player assigned id payload.
+    It also adds PLAYERASSIGN message type for message creation
+
+    Input:
+        Version: Protocol Version
+        Payload: Player Assigned ID
+    Output:
+        Message: return from create_message
+    '''
+    return create_message(version, message.PLAYERASSIGN, client_id=int(client_id), payload=str(player_id))
 
 # Create GAMEEND Message
 def create_game_end_message(version, reason, client_id):
@@ -94,7 +108,7 @@ def create_game_end_message(version, reason, client_id):
     Output:
         Message: return from create_message
     '''
-    return create_message(version, message.GAMEEND, client_id=client_id, payload=reason)
+    return create_message(version, message.GAMEEND, client_id=int(client_id), payload=reason)
 
 # Create GAMEENDACK Message
 def create_game_end_ack_message(version):
