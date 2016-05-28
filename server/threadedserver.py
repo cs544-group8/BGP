@@ -20,7 +20,6 @@ import sys
 import random
 import message_parsing
 import message_creation
-import message_handler
 import state_machine
 import message
 import game_type
