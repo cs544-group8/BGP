@@ -96,7 +96,7 @@ class StateMachine:
                 self.server.assignPlayerNum(self.client_id)
 
             logging.debug("I was assigned player number {}".format(self.player_num))
- 
+
             msg_to_send = message_creation.create_player_assign_message(self.version, self.client_id, self.player_num)
             self.printMessageToSend("PLAYERASSIGN", msg_to_send)
             self.clientsocket.send(msg_to_send)
@@ -131,6 +131,38 @@ class StateMachine:
                         self.state = SERVER_GAME_RESET
                 else:
                     logging.warning("message received was invalid, dropping")
+#       elif state == state_machine.SERVER_GAME_RESET:
+#           if client_RS:
+#                 send_msg = message_creation.create_game_end_ack_message(version)
+#                 state = state_machine.IDLE
+#                 print "Need to send back to client"
+#                 print "\t", message_parsing.parse_message(send_msg)
+#             else:
+#                 data = self.request.recv(1024)
+#                 if data:
+#                     msg_recvd = message_parsing.parse_message(data)
+#                     if self.server.msg_handler.verify_message(msg_recvd):
+#                         if msg_recvd.message_type == message.RESETACK:
+#                             print "Forward to Opponent"
+#                             state = state_machine.GAME_START
+#                         elif msg_recvd.message_type == message.RESETNACK:
+#                             print "Forward to Opponent"
+#                             state = state_machine.GAME_IN_PROGRESS
+#         elif state == state_machine.GAME_END:
+#             if client_GE:
+#                 send_msg = message_creation.create_game_end_ack_message(version)
+#                 state = state_machine.IDLE
+#                 print "Need to send back to client"
+#                 print "\t", message_parsing.parse_message(send_msg)
+#             else:
+#                 data = self.request.recv(1024)
+#                 if data:
+#                     msg_recvd = message_parsing.parse_message(data)
+#                     if self.server.msg_handler.verify_message(msg_recvd):
+#                         if msg_recvd.message_type == message.GAMEENDACK:
+#                             state = state_machine.IDLE
+#         else:
+#             raise Exception('Server in invalide state')
 
     def setPlayerNum(self, p_id):
         self.player_num = p_id
