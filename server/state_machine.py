@@ -15,6 +15,7 @@ import random
 import game_type
 import threading
 import logging
+import uuid
 
 class StateMachine:
 
@@ -58,8 +59,7 @@ class StateMachine:
 
                     logging.debug("valid game type received: {}".format(self.msg_recvd.payload))
                     self.gametype = self.msg_recvd.payload
-
-                    self.client_id = random.randint(1,256)
+                    self.client_id = uuid.uuid4().time_low
                     msg_to_send = message_creation.create_client_id_assign_message(self.version, self.client_id)
                     self.printMessageToSend("CLIENTIDASSIGN", msg_to_send)
                     self.clientsocket.send(msg_to_send)
