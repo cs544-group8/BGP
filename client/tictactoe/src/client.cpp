@@ -83,12 +83,12 @@ int Client::requestGame()
         
         if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
             cerr << "Send error in IDLE" << endl;
-            return IDLE;
+            return -1;
         }
         
         else {
             cout << "Sent game id to server" << endl;
-            return ASSIGN_ID;
+            return -1;
         }
     }
     
@@ -262,38 +262,24 @@ bool Client::sent(int message, string data)
     
     out_pdu.buildPDU(m_client_id, message, prep_data);
     
-    if (out_pdu.m_header.m_version != m_version) {
-        cerr << "Internal error: Wrong PDU version" << endl;
-        return false;
+    if (out_pdu.m_header.m_length > 0) {    // include payload
+//        unsigned char out[out_pdu.m_header.m_length + 8];   // payload size + fixed header
+//        memcpy(out, &out_pdu.m_header, sizeof(8));
+//        memcpy(out+8, &out_pdu.m_payload, sizeof(out_pdu.m_header.m_length));
+
+        unsigned char out[9] = {1,0,1,0,0,0,0,0,1};
+        
+        if(send(m_sock, (char *) out, sizeof(out),0) < 0) {              // Send payload
+            cerr << "Failed to send client id" << endl;
+            return false;
+        }
     }
     
-    if (send(m_sock, (char *) &out_pdu.m_header.m_version, 1, 0) < 0) {       // Send version
-        cerr << "Failed to send version" << endl;
-        return false;
-    }
-    
-    if (send(m_sock, (char *) &out_pdu.m_header.m_message_type, 1, 0) < 0) {  // Send message type
-        cerr << "Failed to send message type" << endl;
-        return false;
-    }
-    
-    if(send(m_sock, (char *) &out_pdu.m_header.m_length, 1, 0) < 0) {         // Send length
-        cerr << "Failed to send length" << endl;
-        return false;
-    }
-    
-    if(send(m_sock, (char *) &out_pdu.m_header.m_reserved, 1, 0) < 0) {       // Send reserve
-        cerr << "Failed to send reserved" << endl;
-        return false;
-    }
-    
-    if(send(m_sock, (char *) &out_pdu.m_header.m_client_ID, 4,0) < 0) {       // Send client id
-        cerr << "Failed to send client id" << endl;
-        return false;
-    }
-       
-    if (out_pdu.m_header.m_length > 0) { // if payload
-        if(send(m_sock, (char *) out_pdu.m_payload.m_data, out_pdu.m_header.m_length,0) < 0) {              // Send payload
+    else { // header only
+        unsigned char out[8];   // payload size + fixed header
+        memcpy(out, &out_pdu.m_header, sizeof(8));
+        
+        if(send(m_sock, (char *) out, 8,0) < 0) {              // Send payload
             cerr << "Failed to send client id" << endl;
             return false;
         }
