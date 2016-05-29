@@ -239,6 +239,10 @@ bool Client::connected(string address , int port)
     }
     else    {   /* OK , nothing */  }
     
+    if(address.find(".") == string::npos) { // hostname
+        address = string(lookupHostname(address));
+    }
+    
     server.sin_addr.s_addr = inet_addr( address.c_str() );
     server.sin_family = AF_INET;
     server.sin_port = htons( m_port );
@@ -252,6 +256,23 @@ bool Client::connected(string address , int port)
     
     cout<<"Connected to " << m_server_address << " on port " << m_port << endl;
     return true;
+}
+
+string Client::lookupHostname(string hostname)
+{
+    struct hostent *he;
+    struct in_addr **addr_list;
+    
+    if ( (he = gethostbyname( hostname.c_str() ) ) == NULL)
+    {
+        // get the host info
+        perror("gethostbyname");
+        return hostname;
+    }
+    
+    addr_list = (struct in_addr **) he->h_addr_list;
+    
+    return string(inet_ntoa(*addr_list[0]));
 }
 
 bool Client::sent(int message, string data)
@@ -268,8 +289,8 @@ bool Client::sent(int message, string data)
 //        memcpy(out+8, &out_pdu.m_payload, sizeof(out_pdu.m_header.m_length));
 
         unsigned char out[9] = {1,0,1,0,0,0,0,0,1};
-        
-        if(send(m_sock, (char *) out, sizeof(out),0) < 0) {              // Send payload
+        cout << out << endl;
+        if(send(m_sock, out, 9,0) < 0) {              // Send payload
             cerr << "Failed to send client id" << endl;
             return false;
         }
@@ -284,6 +305,7 @@ bool Client::sent(int message, string data)
             return false;
         }
     }
+    
     
     return true; // successfully sent message
 }
