@@ -9,10 +9,15 @@
 #include "client.hpp"
 
 using namespace ClientEnums;
+using namespace PDUEnums;
 
 Client::Client(Game game)
 {
     m_game = game;
+    m_client_id = 0x0000;
+    m_port = 9999;
+    m_sock = -1;
+    m_version = 1;
 }
 
 Client::~Client()
@@ -67,120 +72,152 @@ void Client::run()
 
 int Client::requestGame()
 {
-    bool success = true; // delete later
-    
     cout << "Connect to server by entering ip address or hostname:" << endl;
     cout << "e.g. 192.168.23.136 or GameServer" << endl;
     getline(cin, m_server_address);
     
-    cout << "Enter game would you like to play:" << endl;
-    cout << "(See BGP manual for valid game types)" << endl;
-    getline(cin, m_game_ID);
-    
-    send("Sent game id to server address"); // server needs to validate this ID
-    
-    if(success)
-        return ASSIGN_ID;
-    else {
-        m_reason = "Failed to connect to: " + m_server_address;
-        return GAME_END;
+    if (connected(m_server_address, m_port)) {    // Successful connection
+        cout << "Enter game you would like to play:" << endl;
+        cout << "(See BGP manual for valid game types)" << endl;
+        getline(cin, m_game_ID);
+        
+//        unsigned char test[1];
+//        strcpy((char*) test, m_game_ID.c_str());
+//        
+//        if(!sent(NEWGAMETYPE, test)) {       // Send failed
+//            cerr << "Send error in IDLE" << endl;
+//            return IDLE;
+//        }
+//        
+//        else {
+//            cout << "Sent game id to server" << endl;
+//            return ASSIGN_ID;
+//        }
     }
+    
+    return -1;
 }
 
 int Client::assignID()
 {
-    bool success = true; // delete later
+    PDU in_pdu;
     
-    m_client_id = receive("Received client id", 123456);
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case INVGAMETYPE:
+                cout << "Invalid game id" << endl;
+                return IDLE;
+            case CLIENTIDASSIGN:
+                if(receivedPayload(in_pdu)) { // payload received
+                    try {
+                        m_client_id = in_pdu.m_header.m_client_ID;
+                    }
+                    catch (std::invalid_argument&){
+                        cerr << "Invaid client id type. Must be unsigned int: " <<  in_pdu.m_header.m_client_ID << endl;
+                        return ASSIGN_ID;
+                    }
+                    return FIND_OPP;
+                }
+                else {
+                    cerr << "No payload received from server in ASSIGN_ID" << endl;
+                    return ASSIGN_ID;
+                }
+
+            default:
+                cerr << "Invalid message type in ASSIGN_ID: " << in_pdu.m_header.m_message_type << endl;
+                return ASSIGN_ID;
+        }
+    }
     
-    if(success)
-        return FIND_OPP;
     else {
-        m_reason = "No client ID received from server";
-        return GAME_END;
+        cout << "No message received from server in ASSIGN_ID" << endl; // time out case
+        return IDLE;
     }
 }
 
 int Client::findOpponent()
 {
-    bool wait = true;   // delete later
-    bool success = true; // delete later
-    
-    send("Sent find opponent message to server");
-    
-    if(wait)
-        cout << "Server is looking for opponent..." << endl;
-    
-    if(success) {
-        m_player = receive("Server found opponent", GameEnums::PLAYER1);    // server assigns client as player 1 or 2
-        
-        m_game.showBoard();
-        if(m_player == GameEnums::PLAYER1)
-            return SEND_MOVE;
-        else if(m_player == GameEnums::PLAYER2)
-            return RECV_MOVE;
-        else {
-            m_reason = "Invalid player ID assigned";
-            return GAME_END;
-        }
-    }
-    else {
-        m_reason = "Server failed to find opponent. Try again later.";
-        return GAME_END;
-    }
+//    bool wait = true;   // delete later
+//    bool success = true; // delete later
+//    
+//    send("Sent find opponent message to server");
+//    
+//    if(wait)
+//        cout << "Server is looking for opponent..." << endl;
+//    
+//    if(success) {
+//        m_player = receive("Server found opponent", GameEnums::PLAYER1);    // server assigns client as player 1 or 2
+//        
+//        m_game.showBoard();
+//        if(m_player == GameEnums::PLAYER1)
+//            return SEND_MOVE;
+//        else if(m_player == GameEnums::PLAYER2)
+//            return RECV_MOVE;
+//        else {
+//            m_reason = "Invalid player ID assigned";
+//            return GAME_END;
+//        }
+//    }
+//    else {
+//        m_reason = "Server failed to find opponent. Try again later.";
+//        return GAME_END;
+//    }
+    return -1;
 }
 
 int Client::incomingMove()
 {
-    bool success = true; // delete later
-    
-    if(!m_game.isGameOver()) {
-        cout << "Waiting for move from opponent" << endl;
-        getline(cin, m_move);
-        
-        if(success) {
-            m_game.validMove(m_move, GameEnums::PLAYER2);
-            return SEND_MOVE;
-        }
-        
-        else {
-            m_reason = "No move received from opponent";
-            return GAME_END;
-        }
-    }
-    else {
-        m_reason = "Game over";
-        return GAME_END;
-    }
+//    bool success = true; // delete later
+//    
+//    if(!m_game.isGameOver()) {
+//        cout << "Waiting for move from opponent" << endl;
+//        getline(cin, m_move);
+//        
+//        if(success) {
+//            m_game.validMove(m_move, GameEnums::PLAYER2);
+//            return SEND_MOVE;
+//        }
+//        
+//        else {
+//            m_reason = "No move received from opponent";
+//            return GAME_END;
+//        }
+//    }
+//    else {
+//        m_reason = "Game over";
+//        return GAME_END;
+//    }
+    return -1;
 }
 
 int Client::outgoingMove()
 {
-    if(!m_game.isGameOver()) {
-        cout << "Enter your move:" << endl;
-        cout << "e.g. 2 or 7" << endl;
-        getline(cin, m_move);
-        
-        if(m_game.validMove(m_move, m_player)) {
-            send("Sent move: " + m_move);
-            return RECV_MOVE;
-        }
-        else {
-            cout << "Invalid move. Try again" << endl;
-            return SEND_MOVE;
-        }
-    }
-    
-    else {
-        m_reason = "Game over";
-        return GAME_END;
-    }
+//    if(!m_game.isGameOver()) {
+//        cout << "Enter your move:" << endl;
+//        cout << "e.g. 2 or 7" << endl;
+//        getline(cin, m_move);
+//        
+//        if(m_game.validMove(m_move, m_player)) {
+//            send("Sent move: " + m_move);
+//            return RECV_MOVE;
+//        }
+//        else {
+//            cout << "Invalid move. Try again" << endl;
+//            return SEND_MOVE;
+//        }
+//    }
+//    
+//    else {
+//        m_reason = "Game over";
+//        return GAME_END;
+//    }
+    return -1;
 }
 
 int Client::gameOver()
 {
-    send("Sent reason for game over");
-    cout << "Quitting application..." << endl;
+//    send("Sent reason for game over");
+//    cout << "Quitting application..." << endl;
     return -1;
 }
 
@@ -189,13 +226,117 @@ void Client::drawLine()
     cout << "----------------------------------------------------" << endl;
 }
 
-void Client::send(string message)
+bool Client::connected(string address , int port)
 {
-    cout << "***" << message << "***"<< endl;
+    //create socket if it is not already created
+    if(m_sock == -1)
+    {
+        //Create socket
+        m_sock = socket(AF_INET , SOCK_STREAM , 0);
+        if (m_sock == -1)
+        {
+            cerr << ("Could not create socket") << endl;
+        }
+        
+        cout << "Socket created" << endl;
+    }
+    else    {   /* OK , nothing */  }
+    
+    
+    server.sin_addr.s_addr = inet_addr( address.c_str() );
+    server.sin_family = AF_INET;
+    server.sin_port = htons( m_port );
+    
+    //Connect to remote server
+    if (connect(m_sock , (struct sockaddr *)&server , sizeof(server)) < 0)
+    {
+        cerr << "Failed to connect to " << m_server_address << endl;
+        return false;
+    }
+    
+    cout<<"Connected to " << m_server_address << " on port " << m_port << endl;
+    return true;
 }
 
-int Client::receive(string message, int data)
+bool Client::sent(int message, unsigned char * data)
 {
-    cout << "***" << message << "***" << endl;
-    return data;
+    PDU out_pdu;
+    out_pdu.buildPDU(m_client_id, message, data);
+    
+    if (out_pdu.m_header.m_version != m_version) {
+        cerr << "Internal error: Wrong PDU version" << endl;
+        return false;
+    }
+    
+    if (send(m_sock, &out_pdu.m_header.m_version, 1, 0) < 0) {       // Send version
+        cerr << "Failed to send version" << endl;
+        return false;
+    }
+    
+    if (send(m_sock, &out_pdu.m_header.m_message_type, 1, 0) < 0) {  // Send message type
+        cerr << "Failed to send message type" << endl;
+        return false;
+    }
+    
+    if(send(m_sock, &out_pdu.m_header.m_length, 1, 0) < 0) {         // Send length
+        cerr << "Failed to send length" << endl;
+        return false;
+    }
+    
+    if(send(m_sock, &out_pdu.m_header.m_reserved, 1, 0) < 0) {       // Send reserve
+        cerr << "Failed to send reserved" << endl;
+        return false;
+    }
+    
+    if(send(m_sock, &out_pdu.m_header.m_client_ID, 4,0) < 0) {       // Send client id
+        cerr << "Failed to send client id" << endl;
+        return false;
+    }
+       
+    if (out_pdu.m_header.m_length > 0) { // if payload
+        if(send(m_sock, (char *) out_pdu.m_payload.m_data, sizeof(out_pdu.m_payload.m_data),0) < 0) {              // Send payload
+            cerr << "Failed to send client id" << endl;
+            return false;
+        }
+    }
+    
+    return true; // successfully sent message
+}
+
+bool Client::receivedHeader(const PDU &in_pdu)
+{
+    char buffer[8]; // fixed header size
+    
+    if(recv(m_sock, buffer, sizeof(buffer), 0) < 0) {
+        cerr << "Receive header failed" << endl;
+        return false;
+    }
+    
+//    memcpy(&in_pdu.m_header, buffer, sizeof(buffer));   // no idea if this works
+    
+    if(in_pdu.m_header.m_version != m_version) {  // invalid version
+        cerr << "Invalid header version" << endl;
+        return false;
+    }
+    
+    if(in_pdu.m_header.m_client_ID != m_client_id) {  // invalid client ID
+        cerr << "Invalid header client id" << endl;
+        return false;
+    }
+    
+    return true;
+}
+
+bool Client::receivedPayload(const PDU &in_pdu)
+{
+    char buffer[in_pdu.m_header.m_length]; // payload size
+    
+    if(recv(m_sock, buffer, sizeof(buffer), 0) < 0) {
+        cerr << "Receive payload failed" << endl;
+        return false;
+    }
+    
+//    memcpy(&in_pdu.m_payload.m_data, buffer, sizeof(buffer));   // no idea if this works
+    
+    return true;
 }
