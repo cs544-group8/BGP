@@ -59,6 +59,8 @@ class StateMachine:
 
                     logging.debug("valid game type received: {}".format(self.msg_recvd.payload))
                     self.gametype = self.msg_recvd.payload
+                    #generates a random unique id that is 128 bits long - time_low gets us the first 32-bits of it - not sure if this will cause collision issues since we aren't using all 128 bits (maybe we should consider making client_id 128 bits)
+                    #no need for central repository as module uuid generates ids in accordance with RFC4122
                     self.client_id = uuid.uuid4().time_low
                     msg_to_send = message_creation.create_client_id_assign_message(self.version, self.client_id)
                     self.printMessageToSend("CLIENTIDASSIGN", msg_to_send)
