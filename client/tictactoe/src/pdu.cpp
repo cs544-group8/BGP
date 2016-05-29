@@ -24,16 +24,18 @@ PDU::~PDU()
 
 void PDU::buildPDU(unsigned long id, int message, unsigned char* data)
 {
+    this->m_header.m_client_ID = id;
+    
     switch(message) {
         case NEWGAMETYPE:
             this->m_header.m_message_type = NEWGAMETYPE;
-//            memcpy(&this->m_payload.m_data, data, sizeof(&data));
-//            this->m_header.m_length = sizeof(this->m_payload.m_data);
+            memcpy(&this->m_payload.m_data, data, sizeof(&data));
+            this->m_header.m_length = sizeof(&data);
             break;
         case MOVE:
             this->m_header.m_message_type = MOVE;
-//            this->m_payload.m_data = *data;
-//            this->m_header.m_length = sizeof(this->m_payload.m_data);
+            memcpy(&this->m_payload.m_data, data, sizeof(&data));
+            this->m_header.m_length = sizeof(&data);
             break;
         case INVMOVE:
             this->m_header.m_message_type = INVMOVE;
