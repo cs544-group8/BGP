@@ -30,15 +30,15 @@ class Message(object):
     def __repr__(self):
         return "Version: {}, Msg Type: {}, Length: {}, ClientID: {}, Payload: {}".format(self.version, self.message_type, self.length, self.client_id, self.payload)
 
-NEWGAMETYPE     = 0x1
-INVGAMETYPE     = 0x2
-CLIENTIDASSIGN  = 0x3
-FOUNDOPP        = 0x4
-PLAYERASSIGN    = 0x5
-MOVE            = 0x6
-INVMOVE         = 0x7
-RESET           = 0x8
-RESETACK        = 0x9
-RESETNACK       = 0xa
-GAMEEND         = 0xb
-GAMEENDACK      = 0xc
+NEWGAMETYPE     = 0x0
+INVGAMETYPE     = 0x1
+CLIENTIDASSIGN  = 0x2
+FOUNDOPP        = 0x3
+PLAYERASSIGN    = 0x4
+MOVE            = 0x5
+INVMOVE         = 0x6
+RESET           = 0x7
+RESETACK        = 0x8
+RESETNACK       = 0x9
+GAMEEND         = 0xa
+GAMEENDACK      = 0xb
