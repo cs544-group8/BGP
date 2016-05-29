@@ -34,7 +34,7 @@ public:
     int m_sock;
     struct sockaddr_in server;
     bool connected(string addr, int port);
-    bool sent(int message, unsigned char * data);
+    bool sent(int message, string data);
     bool receivedHeader(const PDU & pdu);
     bool receivedPayload(const PDU & pdu);
     

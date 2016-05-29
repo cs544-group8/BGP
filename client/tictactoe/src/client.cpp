@@ -81,18 +81,15 @@ int Client::requestGame()
         cout << "(See BGP manual for valid game types)" << endl;
         getline(cin, m_game_ID);
         
-//        unsigned char test[1];
-//        strcpy((char*) test, m_game_ID.c_str());
-//        
-//        if(!sent(NEWGAMETYPE, test)) {       // Send failed
-//            cerr << "Send error in IDLE" << endl;
-//            return IDLE;
-//        }
-//        
-//        else {
-//            cout << "Sent game id to server" << endl;
-//            return ASSIGN_ID;
-//        }
+        if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
+            cerr << "Send error in IDLE" << endl;
+            return IDLE;
+        }
+        
+        else {
+            cout << "Sent game id to server" << endl;
+            return ASSIGN_ID;
+        }
     }
     
     return -1;
@@ -242,7 +239,6 @@ bool Client::connected(string address , int port)
     }
     else    {   /* OK , nothing */  }
     
-    
     server.sin_addr.s_addr = inet_addr( address.c_str() );
     server.sin_family = AF_INET;
     server.sin_port = htons( m_port );
@@ -258,43 +254,46 @@ bool Client::connected(string address , int port)
     return true;
 }
 
-bool Client::sent(int message, unsigned char * data)
+bool Client::sent(int message, string data)
 {
     PDU out_pdu;
-    out_pdu.buildPDU(m_client_id, message, data);
+    unsigned char prep_data[data.length()];
+    strcpy((char *) prep_data, data.c_str());
+    
+    out_pdu.buildPDU(m_client_id, message, prep_data);
     
     if (out_pdu.m_header.m_version != m_version) {
         cerr << "Internal error: Wrong PDU version" << endl;
         return false;
     }
     
-    if (send(m_sock, &out_pdu.m_header.m_version, 1, 0) < 0) {       // Send version
+    if (send(m_sock, (char *) &out_pdu.m_header.m_version, 1, 0) < 0) {       // Send version
         cerr << "Failed to send version" << endl;
         return false;
     }
     
-    if (send(m_sock, &out_pdu.m_header.m_message_type, 1, 0) < 0) {  // Send message type
+    if (send(m_sock, (char *) &out_pdu.m_header.m_message_type, 1, 0) < 0) {  // Send message type
         cerr << "Failed to send message type" << endl;
         return false;
     }
     
-    if(send(m_sock, &out_pdu.m_header.m_length, 1, 0) < 0) {         // Send length
+    if(send(m_sock, (char *) &out_pdu.m_header.m_length, 1, 0) < 0) {         // Send length
         cerr << "Failed to send length" << endl;
         return false;
     }
     
-    if(send(m_sock, &out_pdu.m_header.m_reserved, 1, 0) < 0) {       // Send reserve
+    if(send(m_sock, (char *) &out_pdu.m_header.m_reserved, 1, 0) < 0) {       // Send reserve
         cerr << "Failed to send reserved" << endl;
         return false;
     }
     
-    if(send(m_sock, &out_pdu.m_header.m_client_ID, 4,0) < 0) {       // Send client id
+    if(send(m_sock, (char *) &out_pdu.m_header.m_client_ID, 4,0) < 0) {       // Send client id
         cerr << "Failed to send client id" << endl;
         return false;
     }
        
     if (out_pdu.m_header.m_length > 0) { // if payload
-        if(send(m_sock, (char *) out_pdu.m_payload.m_data, sizeof(out_pdu.m_payload.m_data),0) < 0) {              // Send payload
+        if(send(m_sock, (char *) out_pdu.m_payload.m_data, out_pdu.m_header.m_length,0) < 0) {              // Send payload
             cerr << "Failed to send client id" << endl;
             return false;
         }
