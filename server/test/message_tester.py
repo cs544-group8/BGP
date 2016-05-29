@@ -19,6 +19,7 @@ import message_parsing
 version = 0x1
 client = random.randint(1,256)
 opponent = random.randint(1,256)
+player_num = 1
 move = "5"
 reason = "I won"
 
@@ -27,14 +28,19 @@ obj = message_parsing.parse_message(msg)
 print "Invalid Game Type Message:"
 print "\t", obj
 
-msg = message_creation.create_client_id_assign_message(version, str(client))
+msg = message_creation.create_client_id_assign_message(version, client)
 obj = message_parsing.parse_message(msg)
 print "Client Assign ID Message:"
 print "\t", obj
 
-msg = message_creation.create_found_opponent_message(version, str(opponent))
+msg = message_creation.create_found_opponent_message(version, opponent)
 obj = message_parsing.parse_message(msg)
 print "Found Opponent Message:"
+print "\t", obj
+
+msg = message_creation.create_player_assign_message(version, client, player_num)
+obj = message_parsing.parse_message(msg)
+print "Player Assign Message:"
 print "\t", obj
 
 msg = message_creation.create_game_end_message(version, reason, client)

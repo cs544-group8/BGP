@@ -8,151 +8,198 @@
 #Module name: message
 #Description: defines a server state machine object and its state transitions
 
-from message import VALGAMETYPE,NEWGAMETYPE,INVGAMETYPE,CLIENTIDASSIGN,FINDOPP,WAITFOROPP,FOUNDOPP,REQMOVE,MOVE,OPPMOVE,GAMEEND,GAMEENDACK
-import game_type
+import message
 import message_creation
 import message_parsing
 import random
+import game_type
+import threading
+import logging
+import uuid
 
-IDLE = 0x1
-GAME_TYPE_ESTABLISHED = 0x2
-CLIENT_ID_ASSIGNED = 0x3
-FINDING_OPPONENT = 0x4
-GAME_IN_PROGRESS = 0x5
-MOVE_REQUEST_RECEIVED = 0x6
-MOVE_REQUEST_SENT = 0x7
-WAITING_FOR_MOVE = 0x8
-FORWARD_MOVE = 0x9
-GAME_END_RECEIVED = 0xA
-GAME_END_SENT = 0xB
+class StateMachine:
 
-class ServerStateMachine(object):
-    '''
-    Class used to represent the state of a server client connection
-    '''
-    def __init__(self, version):
-        '''
-        Intialization function of Server State Machine Class.
-        Input:
-        '''
+    def __init__(self, version, client_sock, server_inst):
+        #client socket and server instance references for convenience
+        self.clientsocket = client_sock
+        self.server = server_inst
+
+        #BGP version from server
         self.version = version
+
+        #current state of the state machine
         self.state = IDLE
-        self.partner_machine = None
-        self.client_id = None
-    
-    def handle_message(self, msg):
+
+        #per game attributes
+        self.gametype = -1
+        self.client_id = 0
+        self.player_num = -1
+        self.opponent_sm = None
+
+        #used for states that receive a message and need to keep it around
+        #for future states
+        self.msg_recvd = None
+
+    def run_state_machine(self):
         if self.state == IDLE:
-            print "Idle State"
-            if msg.message_type == NEWGAMETYPE:
-                # Checking Game type is valid.
-                if game_type.game_id_check(msg.payload):
-                    #valid game
-                    print "\tReceived valid NEWGAMETYPE("+str(NEWGAMETYPE)+"), type="+msg.payload
-                    new_msg = message_creation.create_valid_game_type_message(self.version)
-                    print "\tSend:", message_parsing.parse_message(new_msg)
-                    self.state = GAME_TYPE_ESTABLISHED
-                    print "\tSent VALGAMETYPE("+str(VALGAMETYPE)+") goto GAME_TYPE_ESTABLISHED"
+            logging.debug("Current state: Idle")
+            data = self.clientsocket.recv(1024)
+            if data:
+                self.msg_recvd = message_parsing.parse_message(data)
+                if self.valid_message(self.msg_recvd):
+                    if self.msg_recvd.message_type == message.NEWGAMETYPE:
+                        logging.debug("received NEWGAMETYPE going to Assign ID")
+                        self.state = ASSIGN_ID
                 else:
-                    #invalid game
-                    print "\tReceived invalid NEWGAMETYPE("+str(NEWGAMETYPE)+"), type="+msg.payload
-                    new_msg = message_creation.create_invalid_game_type_message(self.version)
-                    print "\tSend:", message_parsing.parse_message(new_msg)
-                    print "\tSent INVGAMETYPE("+str(INVGAMETYPE)+") stay in IDLE"
-            elif msg.message_type == GAMEEND:
-                self.state = GAME_END_RECEIVED
-                print "\tReceived GAMEEND("+str(GAMEEND)+") goto GAME_END_RECEIVED"
-            else:
-                # Do we want to throw and invalide message back or something?
-                print "\tReceived unexpected message drop it"
-                print "\tDroping", message_parsing.parse_message(msg)
-                return
-        elif self.state == GAME_TYPE_ESTABLISHED:
-            print "Game Type Established State"
-            self.client_id = random.randint(1,256)
-            new_msg = message_creation.create_client_id_assignment_message(self.version, str(self.client_id))
-            print "\tSend:", message_parsing.parse_message(new_msg)
-            self.state = CLIENT_ID_ASSIGNED
-            print "\tSent CLIENTIDASSIGN("+str(CLIENTIDASSIGN)+") goto CLIENT_ID_ASSIGNED"
-        elif self.state == CLIENT_ID_ASSIGNED:
-            print "Client ID Assigned State"
-            if msg.message_type == FINDOPP:
-                print "\tWaiting for other thread to need opponent"
-                self.state = FINDING_OPPONENT
-                print "\tReceived FINDOPP("+str(FINDOPP)+") goto FINDING_OPPONENT"
-            elif msg.message_type == GAMEEND:
-                self.state = GAME_END_RECEIVED
-                print "\tReceived GAMEEND("+str(GAMEEND)+") goto GAME_END_RECEIVED"
-            else:
-                # Do we want to throw and invalide message back or something?
-                print "\tReceived unexpected message drop it"
-                print "\tDroping", message_parsing.parse_message(msg)
-                return
-        elif self.state == FINDING_OPPONENT:
-            print "Finding Opponent State"
-            print "\tOpponent found"
-            opponent = random.randint(1,256)
-            new_msg = message_creation.create_found_opponent_message(self.version, str(opponent))
-            print "\tSend:", message_parsing.parse_message(new_msg)
+                    logging.warning("message received was invalid, dropping")
+        elif self.state == ASSIGN_ID:
+            logging.debug("current state: Assign ID")
+            if self.msg_recvd:
+                if game_type.game_id_check(self.msg_recvd.payload):
+
+                    logging.debug("valid game type received: {}".format(self.msg_recvd.payload))
+                    self.gametype = self.msg_recvd.payload
+                    #generates a random unique id that is 128 bits long - time_low gets us the first 32-bits of it - not sure if this will cause collision issues since we aren't using all 128 bits (maybe we should consider making client_id 128 bits)
+                    #no need for central repository as module uuid generates ids in accordance with RFC4122
+                    self.client_id = uuid.uuid4().time_low
+                    msg_to_send = message_creation.create_client_id_assign_message(self.version, self.client_id)
+                    self.printMessageToSend("CLIENTIDASSIGN", msg_to_send)
+                    self.clientsocket.send(msg_to_send)
+
+                    logging.debug("going to Find Opponent")
+                    self.state = FIND_OPPONENT
+                    self.msg_recvd = None
+                else:
+                    #invalid game type
+                    logging.debug("invalid game type received: {}".format(self.msg_recvd.payload))
+                    msg_to_send = message_creation.create_invalid_game_type_message(self.version)
+                    self.printMessageToSend("INVALIDGAMETYPE", msg_to_send)
+                    self.clientsocket.send(msg_to_send)
+                    logging.debug("going to Idle")
+                    self.state = IDLE
+                    self.msg_recvd = None
+        elif self.state == FIND_OPPONENT:
+            logging.debug("current state: Find Opponent")
+            logging.debug("looping until another client is in Find Opponent")
+            while self.opponent_sm == None:
+                self.server.findOpponent(self.client_id)
+
+            logging.debug("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
+
+            msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
+            self.printMessageToSend("FOUNDOPP", msg_to_send)
+            self.clientsocket.send(msg_to_send)
+
+            logging.debug("going to Game Start")
+            self.state = GAME_START
+        elif self.state == GAME_START:
+            logging.debug("Current state: Game Start")
+            while self.player_num == -1:
+                self.server.assignPlayerNum(self.client_id)
+
+            logging.debug("I was assigned player number {}".format(self.player_num))
+
+            msg_to_send = message_creation.create_player_assign_message(self.version, self.client_id, self.player_num)
+            self.printMessageToSend("PLAYERASSIGN", msg_to_send)
+            self.clientsocket.send(msg_to_send)
+
+            logging.debug("going to Game In Progress")
             self.state = GAME_IN_PROGRESS
-            print "\tSent FOUNDOPPONENT("+str(FOUNDOPP)+") goto GAME_IN_PROGRESS"
         elif self.state == GAME_IN_PROGRESS:
-            print "Game In Progress State"
-            if msg.message_type == REQMOVE:
-                self.state = MOVE_REQUEST_RECEIVED
-                print "\tReceived REQMOVE("+str(REQMOVE)+") goto MOVE_REQUEST_RECEIVED"
-            else:
-                # Do we want to throw and invalide message back or something?
-                print "\tReceived unexpected message drop it"
-                print "\tDroping", message_parsing.parse_message(msg)
-                return
-        elif self.state == MOVE_REQUEST_RECEIVED:
-            print "Move Request Received State"
-            opponent = random.randint(1,256)
-            new_msg = message_creation.create_reqmove_opponent_message(self.version, self.client_id, str(opponent) )
-            print "\tSend:", message_parsing.parse_message(new_msg)
-            self.state = MOVE_REQUEST_SENT
-            print "\tSent REQMOVE("+str(REQMOVE)+") goto MOVE_REQUEST_SENT"
-        elif self.state == MOVE_REQUEST_SENT:
-            print "Move Requst Sent State"
-            new_msg = message_creation.create_wait_for_opponent_message(self.version)
-            print "\tSend:", message_parsing.parse_message(new_msg)
-            self.state = WAITING_FOR_MOVE
-            print "\tSent WAITFOROPP("+str(WAITFOROPP)+") goto WAITING_FOR_MOVE"
-        elif self.state == WAITING_FOR_MOVE:
-            print "Waiting For Move State"
-            if msg.message_type == MOVE:
-                self.state = FORWARD_MOVE
-                print "\tReceived MOVE("+str(MOVE)+") goto FORWARD_MOVE"
-            elif msg.message_type == GAMEEND:
-                self.state = GAME_END_RECEIVED
-                print "\tReceived GAMEEND("+str(GAMEEND)+") goto GAME_END_RECEIVED"
-            else:
-                # Do we want to throw and invalide message back or something?
-                print "\tReceived unexpected message drop it"
-                print "\tDroping", message_parsing.parse_message(msg)
-                return
-        elif self.state == FORWARD_MOVE:
-            print "Forward Move State"
-            new_msg = message_creation.create_opponent_move_message(self.version, msg.client_id, msg.payload)
-            print "\tSend:", message_parsing.parse_message(new_msg)
-            print "\tSent OPPMOVE("+str(OPPMOVE)+") goto GAME_IN_PROGRESS"
-        elif self.state == GAME_END_RECEIVED:
-            print "Game End Received State"
-            new_msg = message_creation.create_game_end_ack_message(self.version)
-            print "\tSend:", message_parsing.parse_message(new_msg)
-            if self.partner_machine != None:
-                print "\tTell partner thread to send GAMEEND message"
-            print "\tSent GAMEENDACK("+str(GAMEENDACK)+") goto IDLE"
-            self.state = IDLE
-        elif self.state == GAME_END_SENT:
-            print "Game End Sent State"
-            if msg.message_type == GAMEENDACK:
-                print "\tReceived GAMEENDACK("+str(GAMEENDACK)+") goto IDLE"
-                self.state = IDLE
-            else:
-                # Do we want to throw and invalide message back or something?
-                print "\tReceived unexpected message drop it"
-                print "\tDroping", message_parsing.parse_message(msg)
-                return
-        else:
-            print "Server in unknown state"
+            logging.debug("Current state: Game In Progress")
+            data = self.clientsocket.recv(1024)
+            if data:
+                msg_recvd = message_parsing.parse_message(data)
+                if self.valid_message(msg_recvd):
+                    if msg_recvd.message_type == message.MOVE:
+                        logging.debug("received MOVE message, forwarding to opponent")
+                        self.printMessageToSend("MOVE", data)
+                        self.opponent_sm.clientsocket.send(data)
+                    elif msg_recvd.message_type == message.INVMOVE:
+                        logging.debug("received INVMOVE message, forwarding to opponent")
+                        self.printMessageToSend("INVMOVE", data)
+                        self.opponent_sm.clientsocket.send(data)
+                    elif msg_recvd.message_type == message.GAME_END:
+                        logging.debug("received GAMEEND message, forwarding to opponent")
+                        self.printMessageToSend("GAMEEND", data)
+                        self.opponent_sm.clientsocket.send(data)
+                        logging.debug("going to Game End")
+                        self.state = GAME_END
+                    elif msg_recvd.message_type == message.RESET:
+                        logging.debug("received RESET message, forwarding to opponent")
+                        self.printMessageToSend("RESET", data)
+                        self.opponent_sm.clientsocket.send(data)
+                        logging.debug("going to Server Game Reset")
+                        self.state = SERVER_GAME_RESET
+                else:
+                    logging.warning("message received was invalid, dropping")
+#       elif state == state_machine.SERVER_GAME_RESET:
+#           if client_RS:
+#                 send_msg = message_creation.create_game_end_ack_message(version)
+#                 state = state_machine.IDLE
+#                 print "Need to send back to client"
+#                 print "\t", message_parsing.parse_message(send_msg)
+#             else:
+#                 data = self.request.recv(1024)
+#                 if data:
+#                     msg_recvd = message_parsing.parse_message(data)
+#                     if self.server.msg_handler.verify_message(msg_recvd):
+#                         if msg_recvd.message_type == message.RESETACK:
+#                             print "Forward to Opponent"
+#                             state = state_machine.GAME_START
+#                         elif msg_recvd.message_type == message.RESETNACK:
+#                             print "Forward to Opponent"
+#                             state = state_machine.GAME_IN_PROGRESS
+#         elif state == state_machine.GAME_END:
+#             if client_GE:
+#                 send_msg = message_creation.create_game_end_ack_message(version)
+#                 state = state_machine.IDLE
+#                 print "Need to send back to client"
+#                 print "\t", message_parsing.parse_message(send_msg)
+#             else:
+#                 data = self.request.recv(1024)
+#                 if data:
+#                     msg_recvd = message_parsing.parse_message(data)
+#                     if self.server.msg_handler.verify_message(msg_recvd):
+#                         if msg_recvd.message_type == message.GAMEENDACK:
+#                             state = state_machine.IDLE
+#         else:
+#             raise Exception('Server in invalide state')
+
+    def setPlayerNum(self, p_id):
+        self.player_num = p_id
+
+    def getPlayerNum(self):
+        return self.player_num
+
+    def setCurrentState(self, new_state):
+        self.state = new_state
+
+    def getCurrentState(self):
+        return self.state
+
+    def setOpponent(self, opp):
+        self.opponent_sm = opp
+
+    def getClientID(self):
+        return self.client_id
+
+    def printMessageToSend(self, msg_string, msg_struct):
+        logging.debug("sending {}: {}".format(msg_string, message_parsing.parse_message(msg_struct)))
+
+    def valid_message(self, msg):
+        if msg.version != self.version:
+            return False
+        elif msg.client_id != self.client_id:
+            return False
+        return True
+
+
+#current states
+IDLE = 0x1
+ASSIGN_ID = 0x2
+FIND_OPPONENT = 0x3
+GAME_START = 0x4
+GAME_IN_PROGRESS = 0x5
+SERVER_GAME_RESET = 0x6
+GAME_END = 0x7
