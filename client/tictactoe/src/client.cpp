@@ -86,7 +86,7 @@ int Client::requestGame()
         getline(cin, m_game_ID);
         
         if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
-            cerr << "Send error in IDLE" << endl;
+            cerr << "BGP: Send error in IDLE" << endl;
             return IDLE;
         }
         
@@ -114,24 +114,24 @@ int Client::assignID()
                         m_client_id = atoi((char*)in_pdu.m_payload.m_data);
                     }
                     catch (std::invalid_argument&){
-                        cerr << "Invaid client id type. Must be unsigned int" << endl;
+                        cerr << "BGP: Invaid client id type. Must be unsigned int" << endl;
                         return ASSIGN_ID;
                     }
                     return FIND_OPP;
                 }
                 else {
-                    cerr << "No payload received from server in ASSIGN_ID" << endl;
+                    cerr << "BGP: No payload received from server in ASSIGN_ID" << endl;
                     return ASSIGN_ID;
                 }
 
             default:
-                cerr << "Invalid message type in ASSIGN_ID: " << in_pdu.m_header.m_message_type << endl;
+                cerr << "BGP: Invalid message type in ASSIGN_ID: " << in_pdu.m_header.m_message_type << endl;
                 return ASSIGN_ID;
         }
     }
     
     else {
-        cout << "No message received from server in ASSIGN_ID" << endl; // time out case
+        cerr << "BGP: No message received from server in ASSIGN_ID" << endl; // time out case
         return IDLE;
     }
 }
@@ -150,17 +150,17 @@ int Client::findOpponent()
                     return GAME_START;
                 }
                 else {
-                    cerr << "No payload received from server in FIND_OPP" << endl;
+                    cerr << "BGP: No payload received from server in FIND_OPP" << endl;
                     return FIND_OPP;
                 }
             default:
-                cerr << "Invalid message type in FIND_OPP: " << in_pdu.m_header.m_message_type << endl;
+                cerr << "BGP: Invalid message type in FIND_OPP: " << in_pdu.m_header.m_message_type << endl;
                 return FIND_OPP;
         }
     }
     
     else {
-        cout << "No message received from server in FIND_OPP" << endl; // time out case
+        cerr << "BGP: No message received from server in FIND_OPP" << endl; // time out case
         return IDLE;
     }
 }
@@ -177,24 +177,24 @@ int Client::assignPlayer()
                         m_player = atoi((char*)in_pdu.m_payload.m_data);
                     }
                     catch (std::invalid_argument&){
-                        cerr << "Invaid player number. Must be a number" << endl;
+                        cerr << "BGP: Invaid player number. Must be a number" << endl;
                         return GAME_START;
                     }
                     
                     return startPosition(m_player);
                 }
                 else {
-                    cerr << "No payload received from server in GAME_START" << endl;
+                    cerr << "BGP: No payload received from server in GAME_START" << endl;
                     return GAME_START;
                 }
             default:
-                cerr << "Invalid message type in GAME_START: " << in_pdu.m_header.m_message_type << endl;
+                cerr << "BGP: Invalid message type in GAME_START: " << in_pdu.m_header.m_message_type << endl;
                 return GAME_START;
         }
     }
     
     else {
-        cout << "No message received from server in GAME_START" << endl; // time out case
+        cerr << "BGP: No message received from server in GAME_START" << endl; // time out case
         return IDLE;
     }
 }
