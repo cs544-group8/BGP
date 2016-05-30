@@ -5,11 +5,11 @@
 #BGP Protocol
 #Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
-#Module name: message
-#Description: defines valid game types
+#Module name: game_type
+#Description: defines valid game types and exposes a method to check if a game type id is valid
 
-def game_id_check(game_id):
-    if game_id in ["1","2","3"]:
+def game_id_check(game_type_id):
+    if game_type_id in ["1"]:
         return True
     else:
         return False

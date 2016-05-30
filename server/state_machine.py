@@ -5,7 +5,7 @@
 #BGP Protocol
 #Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
-#Module name: message
+#Module name: state_machine
 #Description: defines a server state machine object and its state transitions
 
 import message
@@ -89,7 +89,7 @@ class StateMachine:
 
             logging.debug("my opponents client id is: {}".format(self.opponent_sm.getClientID()))
 
-            msg_to_send = message_creation.create_found_opponent_message(self.version, self.opponent_sm.getClientID())
+            msg_to_send = message_creation.create_found_opponent_message(self.version, self.client_id, self.opponent_sm.getClientID())
             self.printMessageToSend("FOUNDOPP", msg_to_send)
             self.clientsocket.send(msg_to_send)
 
@@ -119,24 +119,32 @@ class StateMachine:
                     if self.valid_message(msg_recvd):
                         if msg_recvd.message_type == message.MOVE:
                             logging.debug("received MOVE message, forwarding to opponent")
-                            self.printMessageToSend("MOVE", data)
-                            self.opponent_sm.clientsocket.send(data)
+                            #message contains my client id, make new message that contains opponent's client id, so it can be forwarded
+                            msg_to_send = message_creation.create_move_message(self.version, self.opponent_sm.getClientID(), msg_recvd.payload)
+                            self.printMessageToSend("MOVE", msg_to_send)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                         elif msg_recvd.message_type == message.INVMOVE:
                             logging.debug("received INVMOVE message, forwarding to opponent")
-                            self.printMessageToSend("INVMOVE", data)
-                            self.opponent_sm.clientsocket.send(data)
+                            #message contains my client id, make new message that contains opponent's client id, so it can be forwarded
+                            msg_to_send = message_creation.create_invalid_move_message(self.version, self.opponent_sm.getClientID())
+                            self.printMessageToSend("INVMOVE", msg_to_send)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                         elif msg_recvd.message_type == message.GAMEEND:
                             logging.debug("received GAMEEND message, forwarding to opponent")
-                            self.printMessageToSend("GAMEEND", data)
+                            #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
+                            msg_to_send = message_creation.create_game_end_message(self.version, msg_recvd.payload, self.opponent_sm.getClientID())
+                            self.printMessageToSend("GAMEEND", msg_to_send)
                             self.opponent_sm.setCurrentState(GAME_END)
-                            self.opponent_sm.clientsocket.send(data)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Game End")
                             self.state = GAME_END
                         elif msg_recvd.message_type == message.RESET:
                             logging.debug("received RESET message, forwarding to opponent")
-                            self.printMessageToSend("RESET", data)
+                            #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
+                            msg_to_send = message_creation.create_reset_message(self.version, self.opponent_sm.getClientID())
+                            self.printMessageToSend("RESET", msg_to_send)
                             self.opponent_sm.setCurrentState(SERVER_GAME_RESET)
-                            self.opponent_sm.clientsocket.send(data)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Server Game Reset")
                             self.state = SERVER_GAME_RESET
                     else:
@@ -157,16 +165,20 @@ class StateMachine:
                     if self.valid_message(msg_recvd):
                         if msg_recvd.message_type == message.RESETACK:
                             logging.debug("received RESETACK, forwarding to opponent")
-                            self.printMessageToSend("RESETACK", data)
+                            #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
+                            msg_to_send = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
+                            self.printMessageToSend("RESETACK", msg_to_send)
                             self.opponent_sm.setCurrentState(GAME_START)
-                            self.opponent_sm.clientsocket.send(data)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Game Start")
                             self.state = GAME_START
                         elif msg_recvd.message_type == message.RESETNACK:
                             logging.debug("received RESETNACK, forwarding to opponent")
-                            self.printMessageToSend("RESETNACK", data)
+                            #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
+                            msg_to_send = message_creation.create_reset_nack_message(self.version, self.opponent_sm.getClientID())
+                            self.printMessageToSend("RESETNACK", msg_to_send)
                             self.opponent_sm.setCurrentState(GAME_IN_PROGRESS)
-                            self.opponent_sm.clientsocket.send(data)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Game in Progress")
                             self.state = GAME_IN_PROGRESS
                     else:
@@ -187,9 +199,11 @@ class StateMachine:
                     if self.valid_message(msg_recvd):
                         if msg_recvd.message_type == message.GAMEENDACK:
                             logging.debug("received GAMEENDACK, forwarding to opponent")
-                            self.printMessageToSend("GAMEENDACK", data)
+                            #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
+                            msg_to_send = message_creation.create_game_end_ack_message(self.version, self.opponent_sm.getClientID())
+                            self.printMessageToSend("GAMEENDACK", msg_to_send)
                             self.opponent_sm.setCurrentState(IDLE)
-                            self.opponent_sm.clientsocket.send(data)
+                            self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Idle")
                             self.state = IDLE
                     else:
