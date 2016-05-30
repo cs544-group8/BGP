@@ -11,9 +11,7 @@
 import message
 import message_creation
 import message_parsing
-import random
 import game_type
-import threading
 import logging
 import uuid
 
@@ -112,7 +110,6 @@ class StateMachine:
             if data:
                 msg_recvd = message_parsing.parse_message(data)
                 if self.state != GAME_IN_PROGRESS:
-                    self.msg_recvd = msg_recvd
                     self.data = data
                 else:
                     if self.valid_message(msg_recvd):
@@ -144,6 +141,7 @@ class StateMachine:
             logging.debug("Current state: Server Game Reset")
             if self.data:
                 data = self.data
+                self.data = None
             else:
                 data = self.clientsocket.recv(1024)
             if data:
@@ -166,11 +164,11 @@ class StateMachine:
                             self.state = GAME_IN_PROGRESS
                     else:
                         logging.warning("message received was invalid, dropping")
-                    self.data = None
         elif self.state == GAME_END:
             logging.debug("Current state: Game End")
             if self.data:
                 data = self.data
+                self.data = None
             else:
                 data = self.clientsocket.recv(1024)
             if data:
@@ -186,7 +184,6 @@ class StateMachine:
                             self.state = IDLE
                     else:
                         logging.warning("message received was invalid, dropping")
-                    self.data = None
         else:
             raise Exception('Server in invalid state')
 
