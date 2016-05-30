@@ -15,30 +15,24 @@
 import threading
 import SocketServer
 import logging
-import getopt
-import sys
-import random
-import message_parsing
-import message_creation
 import state_machine
-import message
-import game_type
+import socket
 
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         logging.info("Handling connection from: {}".format(self.client_address))
-
         statemachine = state_machine.StateMachine(self.server.version, self.request, self.server)
         self.server.addStateMachineToList(statemachine)
 
-        while True:
+        running = True
+        while running:
             try:
                 statemachine.run_state_machine()
-            except Exception as e_inst:
-                logging.error("Exception occured: {}".format(e_inst))
-                self.request.close()
-                return False
+            except socket.error, e:
+                logging.error("Caught socket.error: {} - Deleting state machine for connection and ending the thread".format(e))
+                self.server.removeFromStateMachineList(statemachine)
+                running = False
         return
 
 class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -51,12 +45,17 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
     def __init__(self, server_address, RequestHandlerClass):
         self.lock = threading.RLock()
-        self.state_machines = []
+        self.state_machines = list()
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
     def addStateMachineToList(self, sm):
         self.lock.acquire()
         self.state_machines.append(sm)
+        self.lock.release()
+
+    def removeFromStateMachineList(self, sm_to_remove):
+        self.lock.acquire()
+        self.state_machines.remove(sm_to_remove)
         self.lock.release()
 
     #thread safe function that matches two client's that are both in Find Opponent state
