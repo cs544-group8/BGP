@@ -90,8 +90,8 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         sm_to_set = self.getStateMachineByClientID(client_id)
         self.lock.acquire()
         if sm_to_set.getPlayerNum() == -1:
-            sm_to_set.setPlayerNum(1)
-            sm_to_set.opponent_sm.setPlayerNum(2)
+            sm_to_set.setPlayerNum(0)
+            sm_to_set.opponent_sm.setPlayerNum(1)
         self.lock.release()
 
 
