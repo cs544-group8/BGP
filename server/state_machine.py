@@ -14,6 +14,7 @@ import message_parsing
 import game_type
 import logging
 import uuid
+import socket
 
 class StateMachine:
 
@@ -51,6 +52,9 @@ class StateMachine:
                         self.state = ASSIGN_ID
                 else:
                     logging.warning("message received was invalid, dropping")
+            else:
+                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                raise socket.error(error_msg)
         elif self.state == ASSIGN_ID:
             logging.debug("current state: Assign ID")
             if self.msg_recvd:
@@ -137,6 +141,9 @@ class StateMachine:
                             self.state = SERVER_GAME_RESET
                     else:
                         logging.warning("message received was invalid, dropping")
+            else:
+                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                raise socket.error(error_msg)
         elif self.state == SERVER_GAME_RESET:
             logging.debug("Current state: Server Game Reset")
             if self.data:
@@ -164,6 +171,9 @@ class StateMachine:
                             self.state = GAME_IN_PROGRESS
                     else:
                         logging.warning("message received was invalid, dropping")
+            else:
+                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                raise socket.error(error_msg)
         elif self.state == GAME_END:
             logging.debug("Current state: Game End")
             if self.data:
@@ -184,6 +194,9 @@ class StateMachine:
                             self.state = IDLE
                     else:
                         logging.warning("message received was invalid, dropping")
+            else:
+                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                raise socket.error(error_msg)
         else:
             raise Exception('Server in invalid state')
 
