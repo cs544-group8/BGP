@@ -52,6 +52,7 @@ public:
     int requestGame();
     int assignID();
     int findOpponent();
+    int assignPlayer();
     int incomingMove();
     int outgoingMove();
     int gameOver();
@@ -60,6 +61,7 @@ public:
     // Misc
     unsigned char m_version;    
     unsigned int m_client_id;
+    int startPosition(int player);
 };
 
 namespace ClientEnums

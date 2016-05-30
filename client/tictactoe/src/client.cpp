@@ -48,6 +48,10 @@ void Client::run()
                 m_client_state = findOpponent();
                 break;
                 
+            case GAME_START:
+                m_client_state = assignPlayer();
+                break;
+                
             case RECV_MOVE:
                 m_client_state = incomingMove();
                 drawLine();
@@ -110,16 +114,14 @@ int Client::assignID()
                         m_client_id = atoi((char*)in_pdu.m_payload.m_data);
                     }
                     catch (std::invalid_argument&){
-                        cerr << "Invaid client id type. Must be unsigned int: " <<  in_pdu.m_header.m_client_ID << endl;
+                        cerr << "Invaid client id type. Must be unsigned int" << endl;
                         return ASSIGN_ID;
                     }
-                    return -1;
-//                    return FIND_OPP;
+                    return FIND_OPP;
                 }
                 else {
                     cerr << "No payload received from server in ASSIGN_ID" << endl;
-                    return -1;
-                    //                    return ASSIGN_ID;
+                    return ASSIGN_ID;
                 }
 
             default:
@@ -130,45 +132,77 @@ int Client::assignID()
     
     else {
         cout << "No message received from server in ASSIGN_ID" << endl; // time out case
-        return -1;
-//        return IDLE;
+        return IDLE;
     }
 }
 
 int Client::findOpponent()
 {
-//    bool wait = true;   // delete later
-//    bool success = true; // delete later
-//    
-//    send("Sent find opponent message to server");
-//    
-//    if(wait)
-//        cout << "Server is looking for opponent..." << endl;
-//    
-//    if(success) {
-//        m_player = receive("Server found opponent", GameEnums::PLAYER1);    // server assigns client as player 1 or 2
-//        
-//        m_game.showBoard();
-//        if(m_player == GameEnums::PLAYER1)
-//            return SEND_MOVE;
-//        else if(m_player == GameEnums::PLAYER2)
-//            return RECV_MOVE;
-//        else {
-//            m_reason = "Invalid player ID assigned";
-//            return GAME_END;
-//        }
-//    }
-//    else {
-//        m_reason = "Server failed to find opponent. Try again later.";
-//        return GAME_END;
-//    }
-    return -1;
+    PDU in_pdu;
+    
+    cout << "Server is looking for opponent..." << endl;
+    
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case FOUNDOPP:
+                if(receivedPayload(in_pdu)) { // payload received
+                    // ignore payload
+                    return GAME_START;
+                }
+                else {
+                    cerr << "No payload received from server in FIND_OPP" << endl;
+                    return FIND_OPP;
+                }
+            default:
+                cerr << "Invalid message type in FIND_OPP: " << in_pdu.m_header.m_message_type << endl;
+                return FIND_OPP;
+        }
+    }
+    
+    else {
+        cout << "No message received from server in FIND_OPP" << endl; // time out case
+        return IDLE;
+    }
+}
+
+int Client::assignPlayer()
+{
+    PDU in_pdu;
+    
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case PLAYERASSIGN:
+                if(receivedPayload(in_pdu)) { // payload received
+                    try {
+                        m_player = atoi((char*)in_pdu.m_payload.m_data);
+                    }
+                    catch (std::invalid_argument&){
+                        cerr << "Invaid player number. Must be a number" << endl;
+                        return GAME_START;
+                    }
+                    
+                    return startPosition(m_player);
+                }
+                else {
+                    cerr << "No payload received from server in GAME_START" << endl;
+                    return GAME_START;
+                }
+            default:
+                cerr << "Invalid message type in GAME_START: " << in_pdu.m_header.m_message_type << endl;
+                return GAME_START;
+        }
+    }
+    
+    else {
+        cout << "No message received from server in GAME_START" << endl; // time out case
+        return IDLE;
+    }
 }
 
 int Client::incomingMove()
 {
 //    bool success = true; // delete later
-//    
+//
 //    if(!m_game.isGameOver()) {
 //        cout << "Waiting for move from opponent" << endl;
 //        getline(cin, m_move);
@@ -224,6 +258,19 @@ int Client::gameOver()
 void Client::drawLine()
 {
     cout << "----------------------------------------------------" << endl;
+}
+
+int Client::startPosition(int player)
+{    
+    switch (player) {
+        case GameEnums::PLAYER1:
+            return SEND_MOVE;
+        case GameEnums::PLAYER2:
+            return RECV_MOVE;
+        default:
+            cout << "Cannot assign player number: " << player << endl;
+            return GAME_START;
+    }
 }
 
 bool Client::connected(string address , int port)
