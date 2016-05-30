@@ -16,6 +16,7 @@ import game_type
 import threading
 import logging
 import uuid
+import socket
 
 class StateMachine:
 
@@ -52,6 +53,9 @@ class StateMachine:
                         self.state = ASSIGN_ID
                 else:
                     logging.warning("message received was invalid, dropping")
+            else:
+                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                raise socket.error(error_msg)
         elif self.state == ASSIGN_ID:
             logging.debug("current state: Assign ID")
             if self.msg_recvd:
@@ -133,6 +137,10 @@ class StateMachine:
                         self.state = SERVER_GAME_RESET
                 else:
                     logging.warning("message received was invalid, dropping")
+            else:
+                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                raise socket.error(error_msg)
+
 #       elif state == state_machine.SERVER_GAME_RESET:
 #           if client_RS:
 #                 send_msg = message_creation.create_game_end_ack_message(version)
