@@ -15,13 +15,7 @@
 import threading
 import SocketServer
 import logging
-import sys
-import random
-import message_parsing
-import message_creation
 import state_machine
-import message
-import game_type
 import socket
 
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
