@@ -15,6 +15,7 @@ PDU::PDU()
     m_header.m_version = 1;
     m_header.m_length = 0;
     m_header.m_reserved = 0;
+    
 }
 
 PDU::~PDU()
@@ -22,20 +23,22 @@ PDU::~PDU()
 }
 
 
-void PDU::buildPDU(unsigned long id, int message, unsigned char* data)
+void PDU::buildPDU(unsigned int id, int message, string data)
 {
     this->m_header.m_client_ID = id;
+    unsigned char prep_data[data.length()];
+    data.copy((char*)prep_data, data.length(), 0);
     
     switch(message) {
         case NEWGAMETYPE:
             this->m_header.m_message_type = NEWGAMETYPE;
-            memcpy(&this->m_payload.m_data, data, sizeof(&data));
-            this->m_header.m_length = sizeof(&data);
+            memcpy(&this->m_payload.m_data, prep_data, data.length());
+            this->m_header.m_length = data.length();
             break;
         case MOVE:
             this->m_header.m_message_type = MOVE;
-            memcpy(&this->m_payload.m_data, data, sizeof(&data));
-            this->m_header.m_length = sizeof(&data);
+            memcpy(&this->m_payload.m_data, prep_data, data.length());
+            this->m_header.m_length = data.length();
             break;
         case INVMOVE:
             this->m_header.m_message_type = INVMOVE;

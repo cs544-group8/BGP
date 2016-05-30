@@ -14,7 +14,7 @@ using namespace PDUEnums;
 Client::Client(Game game)
 {
     m_game = game;
-    m_client_id = 0x0000;
+    m_client_id = 0;
     m_port = 9999;
     m_sock = -1;
     m_version = 1;
@@ -83,16 +83,16 @@ int Client::requestGame()
         
         if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
             cerr << "Send error in IDLE" << endl;
-            return -1;
+            return IDLE;
         }
         
         else {
             cout << "Sent game id to server" << endl;
-            return -1;
+            return ASSIGN_ID;
         }
     }
     
-    return -1;
+    return -1;  // quit application if connection fails
 }
 
 int Client::assignID()
@@ -107,17 +107,19 @@ int Client::assignID()
             case CLIENTIDASSIGN:
                 if(receivedPayload(in_pdu)) { // payload received
                     try {
-                        m_client_id = in_pdu.m_header.m_client_ID;
+                        m_client_id = atoi((char*)in_pdu.m_payload.m_data);
                     }
                     catch (std::invalid_argument&){
                         cerr << "Invaid client id type. Must be unsigned int: " <<  in_pdu.m_header.m_client_ID << endl;
                         return ASSIGN_ID;
                     }
-                    return FIND_OPP;
+                    return -1;
+//                    return FIND_OPP;
                 }
                 else {
                     cerr << "No payload received from server in ASSIGN_ID" << endl;
-                    return ASSIGN_ID;
+                    return -1;
+                    //                    return ASSIGN_ID;
                 }
 
             default:
@@ -128,7 +130,8 @@ int Client::assignID()
     
     else {
         cout << "No message received from server in ASSIGN_ID" << endl; // time out case
-        return IDLE;
+        return -1;
+//        return IDLE;
     }
 }
 
@@ -278,19 +281,15 @@ string Client::lookupHostname(string hostname)
 bool Client::sent(int message, string data)
 {
     PDU out_pdu;
-    unsigned char prep_data[data.length()];
-    strcpy((char *) prep_data, data.c_str());
-    
-    out_pdu.buildPDU(m_client_id, message, prep_data);
+    out_pdu.buildPDU(m_client_id, message, data);
     
     if (out_pdu.m_header.m_length > 0) {    // include payload
-//        unsigned char out[out_pdu.m_header.m_length + 8];   // payload size + fixed header
-//        memcpy(out, &out_pdu.m_header, sizeof(8));
-//        memcpy(out+8, &out_pdu.m_payload, sizeof(out_pdu.m_header.m_length));
-
-        unsigned char out[9] = {1,0,1,0,0,0,0,0,1};
-        cout << out << endl;
-        if(send(m_sock, out, 9,0) < 0) {              // Send payload
+        const int size = out_pdu.m_header.m_length + 8;
+        unsigned char out[size];            // fixed header + payload size
+        memcpy(out, &out_pdu.m_header, 8);
+        memcpy(out+8, &out_pdu.m_payload, out_pdu.m_header.m_length);
+        
+        if(send(m_sock, out, size,0) < 0) {              // Send pdu
             cerr << "Failed to send client id" << endl;
             return false;
         }
@@ -298,28 +297,27 @@ bool Client::sent(int message, string data)
     
     else { // header only
         unsigned char out[8];   // payload size + fixed header
-        memcpy(out, &out_pdu.m_header, sizeof(8));
+        memcpy(out, &out_pdu.m_header, 8);
         
-        if(send(m_sock, (char *) out, 8,0) < 0) {              // Send payload
+        if(send(m_sock, out, 8,0) < 0) {              // Send pdu
             cerr << "Failed to send client id" << endl;
             return false;
         }
     }
-    
     
     return true; // successfully sent message
 }
 
 bool Client::receivedHeader(const PDU &in_pdu)
 {
-    char buffer[8]; // fixed header size
+    unsigned char buffer[8]; // fixed header size
     
-    if(recv(m_sock, buffer, sizeof(buffer), 0) < 0) {
+    if(recv(m_sock, buffer, 8, 0) < 0) {
         cerr << "Receive header failed" << endl;
         return false;
     }
     
-//    memcpy(&in_pdu.m_header, buffer, sizeof(buffer));   // no idea if this works
+    memcpy((char *)&in_pdu.m_header, buffer, 8);   // no idea if this works
     
     if(in_pdu.m_header.m_version != m_version) {  // invalid version
         cerr << "Invalid header version" << endl;
@@ -336,14 +334,14 @@ bool Client::receivedHeader(const PDU &in_pdu)
 
 bool Client::receivedPayload(const PDU &in_pdu)
 {
-    char buffer[in_pdu.m_header.m_length]; // payload size
+    unsigned char buffer[in_pdu.m_header.m_length]; // payload size
     
-    if(recv(m_sock, buffer, sizeof(buffer), 0) < 0) {
+    if(recv(m_sock, buffer, in_pdu.m_header.m_length, 0) < 0) {
         cerr << "Receive payload failed" << endl;
         return false;
     }
     
-//    memcpy(&in_pdu.m_payload.m_data, buffer, sizeof(buffer));   // no idea if this works
+    memcpy((char *)&in_pdu.m_payload.m_data, buffer, in_pdu.m_header.m_length);   // no idea if this works
     
     return true;
 }

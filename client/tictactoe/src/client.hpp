@@ -59,7 +59,7 @@ public:
     
     // Misc
     unsigned char m_version;    
-    unsigned long m_client_id;
+    unsigned int m_client_id;
 };
 
 namespace ClientEnums

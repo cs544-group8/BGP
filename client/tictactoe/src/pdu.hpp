@@ -20,7 +20,7 @@ struct pduHeader {
     unsigned char m_message_type;
     unsigned char m_length;
     unsigned char m_reserved;
-    unsigned long m_client_ID;
+    unsigned int m_client_ID;
 };
 
 struct pduPayload {
@@ -38,7 +38,7 @@ public:
     pduHeader m_header;
     pduPayload m_payload;
     
-    void buildPDU(unsigned long id, int message, unsigned char * data);
+    void buildPDU(unsigned int id, int message, string data);
     
 };
 
