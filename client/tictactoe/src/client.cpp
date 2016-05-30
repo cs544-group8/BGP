@@ -268,7 +268,7 @@ int Client::startPosition(int player)
         case GameEnums::PLAYER2:
             return RECV_MOVE;
         default:
-            cout << "Cannot assign player number: " << player << endl;
+            cout << "BGP: Cannot assign player number: " << player << endl;
             return GAME_START;
     }
 }

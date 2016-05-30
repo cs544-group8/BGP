@@ -15,7 +15,7 @@ PDU::PDU()
     m_header.m_version = 1;
     m_header.m_length = 0;
     m_header.m_reserved = 0;
-    
+    memset(m_payload.m_data,0,1016);    
 }
 
 PDU::~PDU()
