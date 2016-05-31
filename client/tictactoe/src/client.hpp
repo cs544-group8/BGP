@@ -71,6 +71,7 @@ public:
     unsigned char m_version;    
     unsigned int m_client_id;
     int startPosition(int player);
+    int opponent(int player);
     string reason(int r);
 };
 

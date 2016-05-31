@@ -30,7 +30,7 @@ public:
     vector< vector<string> > m_game_board;
     
     void showBoard();
-    void resetGameboard();
+    void resetBoard();
     bool validMove(string position, int player);
     bool isGameOver();
     void operator=(const Game &G);

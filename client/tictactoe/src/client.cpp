@@ -18,6 +18,7 @@ Client::Client(Game game)
     m_port = 9999;
     m_sock = -1;
     m_version = 1;
+    m_gameover = false;
 }
 
 Client::~Client()
@@ -50,7 +51,8 @@ void Client::run()
                 
             case GAME_START:
                 m_client_state = assignPlayer();
-                m_game.resetGameboard();
+                m_game.resetBoard();
+                m_game.showBoard();
                 break;
                 
             case RECV_MOVE:
@@ -230,7 +232,7 @@ int Client::incomingMove()
                         return RECV_MOVE;
                     }
                     
-                    if(m_game.validMove(to_string(m_opp_move), GameEnums::PLAYER2))
+                    if(m_game.validMove(to_string(m_opp_move), opponent(m_player)))
                         return SEND_MOVE;
                     
                     else {
@@ -261,7 +263,6 @@ int Client::incomingMove()
                         cerr << "BGP: Invaid reason. Must be a number" << endl;
                         return RECV_MOVE;
                     }
-                    m_gameover = true;
                     return GAME_END;
                 }
                 else {
@@ -418,7 +419,7 @@ int Client::gameOver()
                 case GAMEENDACK:
                     cout << reason(m_reason) << endl;
                 default:
-                    cerr << "BGP: Invalid message type in GAME_END: " << in_pdu.m_header.m_message_type << endl;
+                    cerr << "BGP: Invalid message type in GAME_END: " << int(in_pdu.m_header.m_message_type) << endl;
                     return GAME_END;
             }
         }
@@ -430,6 +431,7 @@ int Client::gameOver()
     }
     
     else {
+        m_gameover = false;
         if(!sent(GAMEENDACK, "")) {       // Send failed
             cerr << "BGP: Send error in GAME_END, GAMEENDACK message" << endl;
             disconnect();
@@ -449,14 +451,27 @@ int Client::startPosition(int player)
 {    
     switch (player) {
         case GameEnums::PLAYER1:
-            cout << "You are player " << m_player << endl;
+            cout << "You are player " << (m_player+1) << endl;
             return SEND_MOVE;
         case GameEnums::PLAYER2:
-            cout << "You are player " << m_player << endl;
+            cout << "You are player " << (m_player+1) << endl;
             return RECV_MOVE;
         default:
             cout << "BGP: Cannot assign player number: " << player << endl;
             return GAME_START;
+    }
+}
+
+int Client::opponent(int player)
+{
+    switch (player) {
+        case GameEnums::PLAYER1:
+            return GameEnums::PLAYER2;
+        case GameEnums::PLAYER2:
+            return GameEnums::PLAYER1;
+        default:
+            cout << "BGP: Cannot return opponent number: " << player << endl;
+            return RECV_MOVE;
     }
 }
 
