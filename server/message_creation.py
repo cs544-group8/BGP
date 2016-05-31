@@ -134,7 +134,7 @@ def create_reset_message(version, client_id):
     return create_message(version, message.RESET, client_id=int(client_id))
 
 def create_reset_ack_message(version, client_id):
-    return create_message(version, message.RESET_ACK, client_id=int(client_id))
+    return create_message(version, message.RESETACK, client_id=int(client_id))
 
 def create_reset_nack_message(version, client_id):
-    return create_message(version, message.RESET_NACK, client_id=int(client_id))
+    return create_message(version, message.RESETNACK, client_id=int(client_id))
