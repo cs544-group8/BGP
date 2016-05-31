@@ -49,11 +49,11 @@ void Client::run()
     while(!done) {
         switch(m_client_state) {
             case IDLE:
+                m_client_id = 0;
                 m_client_state = requestGame();
                 break;
                 
             case ASSIGN_ID:
-                m_client_id = 0;
                 m_client_state = assignID();
                 break;
                 
