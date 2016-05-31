@@ -3,33 +3,33 @@ BGP Protocol Requirements
 Client/Server Requirements:
     Stateful: Both client and server must implement, check and validate the statefulness of the BGP protocol DFA.
         Client: <file(s) or location(s) in code>
-        Server: <file(s) or location(s) in code>
+        Server: server/state_machine.py
 
 Server-specific Requirements:
 
     Concurrent: Server must be able to handle multiple clients.
-        Server: threadedserver.py
+        Server: server/threadedserver.py spawns a new thread for each connection it receives (in server/threaded_server.py --> ThreadedRequestHandler.handle())
 
-    Service: The server must bind to a hardcoded port number and the client defaults to that port number.
-        Server: <file(s) or location(s) in code>
+    Service: The server must bind to a hardcoded port number and the client defaults to that port number (port 9999).
+        Server: in __main__ of server/threadedserver.py, port is hard coded to 9999
 
     Game Type Validation: The server must handle incoming NEWGAMETYPE messages and validate the game type contained in the message.
-        Server: <file(s) or location(s) in code>
+        Server: server/game_type.py (game_id_check())
 
     Forward MOVE: The server must handle incoming MOVE message and forward them to the associated client.
-        Server: <file(s) or location(s) in code>
+        Server: server/state_machine.py (we have a StateMachine object per connection, paired state machines get references to each other so they can forward moves to each other's sockets (self.opponent_sm.send()))
 
-    Sender/Receiver Message Authentication: The server must authenticate the Client ID in messages after the "Client ID Assigned" state has been reached.
-        Server: <file(s) or location(s) in code>
+    Sender Message Authentication: The server must authenticate the Client ID in messages from a sending client after the "Client ID Assigned" state has been reached.
+        Server: server/state_machine.py (valid_message())
 
     Client ID Generation: The server must generate random 32-bit Client IDs.
-        Server: <file(s) or location(s) in code>
+        Server: uuid module used (call to uuid.uuid4()) in server/state_machine.py
 
-    Game End Two Way Handshake: The server must be able to handle/start two way game end handshake.
-        Server: <file(s) or location(s) in code>
+    Game End Two Way Handshake: The server must be able to handle two way game end handshake.
+        Server: server/state_machine.py
 
     Find Opponent: The server must be able to detect two clients who are both waiting in the "Finding Opponent" state.
-        Server: <file(s) or location(s) in code>
+        Server: server/state_machine.py makes a call to ThreadedServer.findOpponent()
 
 Client-specific Requirements:
 

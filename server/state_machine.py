@@ -30,9 +30,13 @@ class StateMachine:
         self.state = IDLE
 
         #per game attributes
+        #BGP Game Type
         self.gametype = -1
+        #BGP client id for game
         self.client_id = 0
+        #Player number in the game
         self.player_num = -1
+        #Opponent client state machine reference
         self.opponent_sm = None
 
         #used for states that receive a message and need to keep it around
@@ -40,8 +44,10 @@ class StateMachine:
         self.msg_recvd = None
         self.data = None
 
+    # "STATEFUL" - Part the implements the DFA
     def run_state_machine(self):
         if self.state == IDLE:
+            #IDLE State Handling Code
             logging.debug("Current state: Idle")
             data = self.clientsocket.recv(1024)
             if data:
@@ -56,10 +62,11 @@ class StateMachine:
                 error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
                 raise socket.error(error_msg)
         elif self.state == ASSIGN_ID:
+            #ASSIGN_ID State Handling Code
             logging.debug("current state: Assign ID")
             if self.msg_recvd:
                 if game_type.game_id_check(self.msg_recvd.payload):
-
+                    #valid game type
                     logging.debug("valid game type received: {}".format(self.msg_recvd.payload))
                     self.gametype = self.msg_recvd.payload
                     #generates a random unique id that is 128 bits long - time_low gets us the first 32-bits of it - not sure if this will cause collision issues since we aren't using all 128 bits (maybe we should consider making client_id 128 bits)
@@ -82,8 +89,10 @@ class StateMachine:
                     self.state = IDLE
                     self.msg_recvd = None
         elif self.state == FIND_OPPONENT:
+            #FIND_OPPONENT State Handling Code
             logging.debug("current state: Find Opponent")
             logging.debug("looping until another client is in Find Opponent")
+            #Waiting for opponent.
             while self.opponent_sm == None:
                 self.server.findOpponent(self.client_id)
 
@@ -96,6 +105,7 @@ class StateMachine:
             logging.debug("going to Game Start")
             self.state = GAME_START
         elif self.state == GAME_START:
+            #GAME_START State Handling Code
             logging.debug("Current state: Game Start")
             while self.player_num == -1:
                 self.server.assignPlayerNum(self.client_id)
@@ -109,6 +119,7 @@ class StateMachine:
             logging.debug("going to Game In Progress")
             self.state = GAME_IN_PROGRESS
         elif self.state == GAME_IN_PROGRESS:
+            #GAME_IN_PROGRESS State Handling Code
             logging.debug("Current state: Game In Progress")
             data = self.clientsocket.recv(1024)
             if data:
@@ -117,6 +128,7 @@ class StateMachine:
                     self.data = data
                 else:
                     if self.valid_message(msg_recvd):
+                        #Forward MOVE requirement
                         if msg_recvd.message_type == message.MOVE:
                             logging.debug("received MOVE message, forwarding to opponent")
                             #message contains my client id, make new message that contains opponent's client id, so it can be forwarded
@@ -153,6 +165,7 @@ class StateMachine:
                 error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
                 raise socket.error(error_msg)
         elif self.state == SERVER_GAME_RESET:
+            #SERVER_GAME_RESET State Handling Code
             logging.debug("Current state: Server Game Reset")
             if self.data:
                 data = self.data
@@ -187,6 +200,7 @@ class StateMachine:
                 error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
                 raise socket.error(error_msg)
         elif self.state == GAME_END:
+            #GAME_END State Handling Code
             logging.debug("Current state: Game End")
             if self.data:
                 data = self.data
@@ -235,6 +249,7 @@ class StateMachine:
     def printMessageToSend(self, msg_string, msg_struct):
         logging.debug("sending {}: {}".format(msg_string, message_parsing.parse_message(msg_struct)))
 
+    #Sender Message Authentication requirement
     def valid_message(self, msg):
         if msg.version != self.version:
             return False
