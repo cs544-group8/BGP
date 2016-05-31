@@ -11,6 +11,7 @@
 import struct
 import message
 
+#base function for creating a message, called by the more specific create* functions below
 def create_message(version, msg_type, client_id=None, payload=None):
     '''The function is used to create a message.
     Input:
@@ -22,8 +23,6 @@ def create_message(version, msg_type, client_id=None, payload=None):
     Output:
         Message: Constructed message to send
     '''
-    # Message Creation code here
-    # planning on using struct python module for parsing
     reserved = 0x0
 
     if payload == None:

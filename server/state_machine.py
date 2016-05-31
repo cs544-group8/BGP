@@ -128,6 +128,7 @@ class StateMachine:
                     self.data = data
                 else:
                     if self.valid_message(msg_recvd):
+                        #Forward MOVE requirement
                         if msg_recvd.message_type == message.MOVE:
                             logging.debug("received MOVE message, forwarding to opponent")
                             #message contains my client id, make new message that contains opponent's client id, so it can be forwarded
@@ -248,6 +249,7 @@ class StateMachine:
     def printMessageToSend(self, msg_string, msg_struct):
         logging.debug("sending {}: {}".format(msg_string, message_parsing.parse_message(msg_struct)))
 
+    #Sender Message Authentication requirement
     def valid_message(self, msg):
         if msg.version != self.version:
             return False

@@ -37,7 +37,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 running = False
         return
 
-# SERVICE - Part that implements threaded service 
+# SERVICE - Part that implements threaded service
 class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #allow ctrl-c to kill all spawned threads
     daemon_threads = True
@@ -61,6 +61,7 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.state_machines.remove(sm_to_remove)
         self.lock.release()
 
+    #Find Opponent requirement
     #thread safe function that matches two client's that are both in Find Opponent state
     def findOpponent(self, client_id):
 
