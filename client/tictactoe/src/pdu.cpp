@@ -1,10 +1,10 @@
+//  CS544 - Computer Networks
+//  Group 8
+//  Copyright © 2016 BGP Protocol
+//  Team Members: Ryan Mann, Brian Quinn, TJ Rhodes, Marc Thomson
 //
-//  pdu.cpp
-//  tictactoe
-//
-//  Created by TJ Rhodes on 5/28/16.
-//  Copyright © 2016 BGP Protocol. All rights reserved.
-//
+//  File name: pdu.cpp
+//  Description: source file for pdu object. Logic for creating / storing a pdu is here
 
 #include "pdu.hpp"
 
