@@ -18,8 +18,10 @@ import logging
 import state_machine
 import socket
 
+# CONCURRENT - Handler implemented to be used for each client connection.
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
 
+    #Threaded Client Connection Handling code.
     def handle(self):
         logging.info("Handling connection from: {}".format(self.client_address))
         statemachine = state_machine.StateMachine(self.server.version, self.request, self.server)
@@ -35,6 +37,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 running = False
         return
 
+# SERVICE - Part that implements threaded service 
 class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #allow ctrl-c to kill all spawned threads
     daemon_threads = True
@@ -100,6 +103,7 @@ if __name__ == '__main__':
     #configure logging so we have thread names in our print statements automatically
     logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:(%(threadName)s) - %(message)s')
 
+    #Hard coded port number for service.
     port = 9999
 
     server = ThreadedServer(('', port), ThreadedRequestHandler)
