@@ -487,7 +487,7 @@ string Client::reason(int r)
         case GameEnums::GAMEOVER:
             return "Gameplay has finished";
         case GameEnums::OPPLEFT:
-            return "Oppenent ended the game";
+            return "Opponent ended the game";
         case GameEnums::QUIT:
             return "You ended the game";
         default:
