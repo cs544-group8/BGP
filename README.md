@@ -12,6 +12,7 @@ Will listen on port 9999 for all interfaces on the machine it is run on.
 ###Client
 
 `cd client/tictactoe/src`
+
 `make`  - Builds and runs the client application
 
 To use after applications starts running
