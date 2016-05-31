@@ -20,6 +20,7 @@ import message
 
 HOST,PORT = "localhost", 9999
 client_id = None
+test_twice = True
 test_reset = False
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -98,8 +99,10 @@ try:
         print board[1][0], "|", board[1][1], "|", board[1][2]
         print "--+---+--"
         print board[2][0], "|", board[2][1], "|", board[2][2]
+    
+    print "Starting Game 1 from Idle"
 
-    if player_num == 2:
+    if player_num == 0:
         data = sock.recv(1024)
         print "received {}".format(message_parsing.parse_message(data))
         move = int(message_parsing.parse_message(data).payload)
@@ -208,7 +211,7 @@ try:
         print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
         sock.send(msg_to_send)
 
-    if test_reset:
+    if test_twice:
         p1_board = []
         p1_board.append([])
         p1_board.append([])
@@ -237,12 +240,34 @@ try:
         p2_board[2].append("-")
         p2_board[2].append("-")
 
-        data = sock.recv(1024)
-        msg_recvd = message_parsing.parse_message(data)
-        print "received {}".format(msg_recvd)
-        player_num = int(msg_recvd.payload)
+        if test_reset:
+            data = sock.recv(1024)
+            msg_recvd = message_parsing.parse_message(data)
+            print "received {}".format(msg_recvd)
+            player_num = int(msg_recvd.payload)
+    
+            print "Starting Game 2 from Game Start"
+        else:
+            msg_to_send = message_creation.create_message(1, message.NEWGAMETYPE, payload="1")
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
 
-        if player_num == 2:
+            data = sock.recv(1024)
+            msg_recvd = message_parsing.parse_message(data)
+            print "received {}".format(msg_recvd)
+            client_id = int(msg_recvd.payload)
+            
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
+
+            data = sock.recv(1024)
+            msg_recvd = message_parsing.parse_message(data)
+            print "received {}".format(msg_recvd)
+            player_num = int(msg_recvd.payload)
+
+            print "Starting Game 2 from Idle"
+
+        if player_num == 0:
             data = sock.recv(1024)
             print "received {}".format(message_parsing.parse_message(data))
             move = int(message_parsing.parse_message(data).payload)

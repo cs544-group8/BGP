@@ -49,7 +49,15 @@ class StateMachine:
         if self.state == IDLE:
             #IDLE State Handling Code
             logging.debug("Current state: Idle")
-            data = self.clientsocket.recv(1024)
+            self.gametype = -1
+            self.client_id = 0
+            self.player_num = -1
+            self.opponent_sm = None
+            if self.data:
+                data = self.data
+                self.data = None
+            else:
+                data = self.clientsocket.recv(1024)
             if data:
                 self.msg_recvd = message_parsing.parse_message(data)
                 if self.valid_message(self.msg_recvd):
@@ -121,7 +129,11 @@ class StateMachine:
         elif self.state == GAME_IN_PROGRESS:
             #GAME_IN_PROGRESS State Handling Code
             logging.debug("Current state: Game In Progress")
-            data = self.clientsocket.recv(1024)
+            if self.data:
+                data = self.data
+                self.data = None
+            else:
+                data = self.clientsocket.recv(1024)
             if data:
                 msg_recvd = message_parsing.parse_message(data)
                 if self.state != GAME_IN_PROGRESS:
@@ -196,6 +208,8 @@ class StateMachine:
                             self.state = GAME_IN_PROGRESS
                     else:
                         logging.warning("message received was invalid, dropping")
+                else:
+                    self.data = data
             else:
                 error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
                 raise socket.error(error_msg)
@@ -222,6 +236,8 @@ class StateMachine:
                             self.state = IDLE
                     else:
                         logging.warning("message received was invalid, dropping")
+                else:
+                    self.data = data
             else:
                 error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
                 raise socket.error(error_msg)
