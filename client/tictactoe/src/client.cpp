@@ -263,6 +263,7 @@ int Client::incomingMove()
                         cerr << "BGP: Invaid reason. Must be a number" << endl;
                         return RECV_MOVE;
                     }
+                    m_gameover = true;
                     return GAME_END;
                 }
                 else {
@@ -418,6 +419,8 @@ int Client::gameOver()
             switch(in_pdu.m_header.m_message_type) {
                 case GAMEENDACK:
                     cout << reason(m_reason) << endl;
+                    disconnect();
+                    return IDLE;
                 default:
                     cerr << "BGP: Invalid message type in GAME_END: " << int(in_pdu.m_header.m_message_type) << endl;
                     return GAME_END;
@@ -432,7 +435,7 @@ int Client::gameOver()
     
     else {
         m_gameover = false;
-        if(!sent(GAMEENDACK, "")) {       // Send failed
+        if(!sent(GAMEENDACK, to_string(m_reason))) {       // Send failed
             cerr << "BGP: Send error in GAME_END, GAMEENDACK message" << endl;
             disconnect();
             return IDLE;
@@ -493,7 +496,7 @@ string Client::reason(int r)
 void Client::disconnect()
 {
     cout << "Disconnecting from " << m_server_address << " on port " << m_port << "..." << endl;
-    shutdown(m_sock, SHUT_RDWR);
+//    shutdown(m_sock, SHUT_RDWR);
     close(m_sock);
 }
 
