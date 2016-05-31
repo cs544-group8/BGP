@@ -309,7 +309,7 @@ int Client::outgoingMove()
             case 'Q':
             case 'q':
                 m_reason = GameEnums::QUIT;
-                if(!sent(GAMEEND, to_string(m_reason))) {       // Send failed
+                if(!sent(GAMEEND, to_string(GameEnums::OPPLEFT))) {       // Send failed
                     cerr << "BGP: Send error in SEND_MOVE, GAMEEND message" << endl;
                     disconnect();
                     return -1;
@@ -439,7 +439,7 @@ int Client::gameOver()
     
     else {
         m_gameover = false;
-        if(!sent(GAMEENDACK, to_string(m_reason))) {       // Send failed
+        if(!sent(GAMEENDACK, "")) {       // Send failed
             cerr << "BGP: Send error in GAME_END, GAMEENDACK message" << endl;
             return -1;
         }
