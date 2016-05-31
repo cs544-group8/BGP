@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 
 
 using namespace std;
@@ -34,6 +35,7 @@ public:
     int m_sock;
     struct sockaddr_in server;
     bool connected(string addr, int port);
+    void disconnect();
     string lookupHostname(string hostname);
     bool sent(int message, string data);
     bool receivedHeader(const PDU & pdu);
@@ -43,7 +45,12 @@ public:
     Game m_game;
     string m_game_ID;
     string m_move;
+    string m_last_move;
+    int m_opp_move;
     int m_player;
+    int m_reason;
+    bool m_resend_move;
+    bool m_gameover;
     
     // States
     int m_client_state;
@@ -52,14 +59,20 @@ public:
     int requestGame();
     int assignID();
     int findOpponent();
+    int assignPlayer();
     int incomingMove();
     int outgoingMove();
+    int requestReset();
+    int resetResponse();
     int gameOver();
     void drawLine();
     
     // Misc
     unsigned char m_version;    
     unsigned int m_client_id;
+    int startPosition(int player);
+    int opponent(int player);
+    string reason(int r);
 };
 
 namespace ClientEnums
@@ -70,7 +83,8 @@ namespace ClientEnums
                     GAME_START,
                     RECV_MOVE,
                     SEND_MOVE,
-                    RESET,
+                    RECV_RESET,
+                    SEND_RESET,
                     GAME_END
                     };
 }

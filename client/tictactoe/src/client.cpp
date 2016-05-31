@@ -18,6 +18,7 @@ Client::Client(Game game)
     m_port = 9999;
     m_sock = -1;
     m_version = 1;
+    m_gameover = false;
 }
 
 Client::~Client()
@@ -34,6 +35,17 @@ void Client::run()
 {
     bool done = false;
     
+    cout << "Connect to server by entering ip address or hostname:" << endl;
+    cout << "e.g. 192.168.23.136 or GameServer" << endl;
+    getline(cin, m_server_address);
+    
+    if (connected(m_server_address, m_port)) {    // Successful connection
+        m_client_state = requestGame();
+    }
+    else {
+        m_client_state = -1;
+    }
+    
     while(!done) {
         switch(m_client_state) {
             case IDLE:
@@ -41,11 +53,18 @@ void Client::run()
                 break;
                 
             case ASSIGN_ID:
+                m_client_id = 0;
                 m_client_state = assignID();
                 break;
                 
             case FIND_OPP:
                 m_client_state = findOpponent();
+                break;
+                
+            case GAME_START:
+                m_client_state = assignPlayer();
+                m_game.resetBoard();
+                m_game.showBoard();
                 break;
                 
             case RECV_MOVE:
@@ -56,6 +75,14 @@ void Client::run()
             case SEND_MOVE:
                 m_client_state = outgoingMove();
                 drawLine();
+                break;
+                
+            case SEND_RESET:
+                m_client_state = requestReset();
+                break;
+                
+            case RECV_RESET:
+                m_client_state = resetResponse();
                 break;
                 
             case GAME_END:
@@ -72,27 +99,19 @@ void Client::run()
 
 int Client::requestGame()
 {
-    cout << "Connect to server by entering ip address or hostname:" << endl;
-    cout << "e.g. 192.168.23.136 or GameServer" << endl;
-    getline(cin, m_server_address);
+    cout << "Enter game you would like to play:" << endl;
+    cout << "(See BGP manual for valid game types)" << endl;
+    getline(cin, m_game_ID);
     
-    if (connected(m_server_address, m_port)) {    // Successful connection
-        cout << "Enter game you would like to play:" << endl;
-        cout << "(See BGP manual for valid game types)" << endl;
-        getline(cin, m_game_ID);
-        
-        if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
-            cerr << "Send error in IDLE" << endl;
-            return IDLE;
-        }
-        
-        else {
-            cout << "Sent game id to server" << endl;
-            return ASSIGN_ID;
-        }
+    if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
+        cerr << "BGP: Send error in IDLE" << endl;
+        return -1;
     }
     
-    return -1;  // quit application if connection fails
+    else {
+        cout << "Sent game id: " << m_game_ID << " to server" << endl;
+        return ASSIGN_ID;
+    }
 }
 
 int Client::assignID()
@@ -110,120 +129,378 @@ int Client::assignID()
                         m_client_id = atoi((char*)in_pdu.m_payload.m_data);
                     }
                     catch (std::invalid_argument&){
-                        cerr << "Invaid client id type. Must be unsigned int: " <<  in_pdu.m_header.m_client_ID << endl;
-                        return ASSIGN_ID;
+                        cerr << "BGP: Invaid client id type. Must be unsigned int" << endl;
+                        return -1;
                     }
-                    return -1;
-//                    return FIND_OPP;
+                    return FIND_OPP;
                 }
                 else {
-                    cerr << "No payload received from server in ASSIGN_ID" << endl;
+                    cerr << "BGP: No payload received from server in ASSIGN_ID" << endl;
                     return -1;
-                    //                    return ASSIGN_ID;
                 }
 
             default:
-                cerr << "Invalid message type in ASSIGN_ID: " << in_pdu.m_header.m_message_type << endl;
-                return ASSIGN_ID;
+                cerr << "BGP: Invalid message type in ASSIGN_ID: " << in_pdu.m_header.m_message_type << endl;
+                return -1;
         }
     }
     
     else {
-        cout << "No message received from server in ASSIGN_ID" << endl; // time out case
+        cerr << "BGP: No message received from server in ASSIGN_ID" << endl; // time out case
+        disconnect();
         return -1;
-//        return IDLE;
     }
 }
 
 int Client::findOpponent()
 {
-//    bool wait = true;   // delete later
-//    bool success = true; // delete later
-//    
-//    send("Sent find opponent message to server");
-//    
-//    if(wait)
-//        cout << "Server is looking for opponent..." << endl;
-//    
-//    if(success) {
-//        m_player = receive("Server found opponent", GameEnums::PLAYER1);    // server assigns client as player 1 or 2
-//        
-//        m_game.showBoard();
-//        if(m_player == GameEnums::PLAYER1)
-//            return SEND_MOVE;
-//        else if(m_player == GameEnums::PLAYER2)
-//            return RECV_MOVE;
-//        else {
-//            m_reason = "Invalid player ID assigned";
-//            return GAME_END;
-//        }
-//    }
-//    else {
-//        m_reason = "Server failed to find opponent. Try again later.";
-//        return GAME_END;
-//    }
-    return -1;
+    PDU in_pdu;
+    
+    cout << "Server is looking for opponent..." << endl;
+    
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case FOUNDOPP:
+                if(receivedPayload(in_pdu)) { // payload received
+                    // ignore payload
+                    return GAME_START;
+                }
+                else {
+                    cerr << "BGP: No payload received from server in FIND_OPP" << endl;
+                    return -1;
+                }
+            default:
+                cerr << "BGP: Invalid message type in FIND_OPP: " << in_pdu.m_header.m_message_type << endl;
+                return -1;
+        }
+    }
+    
+    else {
+        cerr << "BGP: No message received from server in FIND_OPP" << endl; // time out case
+        disconnect();
+        return -1;
+    }
+}
+
+int Client::assignPlayer()
+{
+    PDU in_pdu;
+    m_gameover = false;
+    
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case PLAYERASSIGN:
+                if(receivedPayload(in_pdu)) { // payload received
+                    try {
+                        m_player = atoi((char*)in_pdu.m_payload.m_data);
+                    }
+                    catch (std::invalid_argument&){
+                        cerr << "BGP: Invaid player number. Must be a number" << endl;
+                        return -1;
+                    }
+                    
+                    return startPosition(m_player);
+                }
+                else {
+                    cerr << "BGP: No payload received from server in GAME_START" << endl;
+                    return -1;
+                }
+            default:
+                cerr << "BGP: Invalid message type in GAME_START: " << in_pdu.m_header.m_message_type << endl;
+                return -1;
+        }
+    }
+    
+    else {
+        cerr << "BGP: No message received from server in GAME_START" << endl; // time out case
+        disconnect();
+        return -1;
+    }
 }
 
 int Client::incomingMove()
 {
-//    bool success = true; // delete later
-//    
-//    if(!m_game.isGameOver()) {
-//        cout << "Waiting for move from opponent" << endl;
-//        getline(cin, m_move);
-//        
-//        if(success) {
-//            m_game.validMove(m_move, GameEnums::PLAYER2);
-//            return SEND_MOVE;
-//        }
-//        
-//        else {
-//            m_reason = "No move received from opponent";
-//            return GAME_END;
-//        }
-//    }
-//    else {
-//        m_reason = "Game over";
-//        return GAME_END;
-//    }
-    return -1;
+    PDU in_pdu;
+    
+    cout << "Waiting for opponent..." << endl;
+    
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case MOVE:
+                if(receivedPayload(in_pdu)) { // payload received
+                    try {
+                        m_opp_move = atoi((char*)in_pdu.m_payload.m_data);
+                    }
+                    catch (std::invalid_argument&){
+                        cerr << "BGP: Invaid player number. Must be a number" << endl;
+                        return -1;
+                    }
+                    
+                    if(m_game.validMove(to_string(m_opp_move), opponent(m_player)))
+                        return SEND_MOVE;
+                    
+                    else {
+                        if(!sent(INVMOVE, "")) {       // Send failed
+                            cerr << "BGP: Send error in RECV_MOVE, INVMOVE message" << endl;
+                            return -1;
+                        }
+                        return RECV_MOVE;
+                    }
+                }
+                else {
+                    cerr << "BGP: No payload received from server in RECV_MOVE, MOVE message" << endl;
+                    return -1;
+                }
+            case INVMOVE:
+                m_resend_move = true;
+                return SEND_MOVE;
+                
+            case RESET:
+                return RECV_RESET;
+                
+            case GAMEEND:
+                if(receivedPayload(in_pdu)) { // payload received
+                    try {
+                        m_reason = atoi((char*)in_pdu.m_payload.m_data);
+                    }
+                    catch (std::invalid_argument&){
+                        cerr << "BGP: Invaid reason. Must be a number" << endl;
+                        return -1;
+                    }
+                    m_gameover = true;
+                    return GAME_END;
+                }
+                else {
+                    cerr << "BGP: No payload received from server in RECV_MOVE, GAMEEND message" << endl;
+                    return -1;
+                }
+                
+            default:
+                cerr << "BGP: Invalid message type in RECV_MOVE: " << in_pdu.m_header.m_message_type << endl;
+                return -1;
+        }
+    }
+    
+    else {
+        cerr << "BGP: No message received from server in RECV_MOVE" << endl; // time out case
+        disconnect();
+        return -1;
+    }
 }
 
 int Client::outgoingMove()
 {
-//    if(!m_game.isGameOver()) {
-//        cout << "Enter your move:" << endl;
-//        cout << "e.g. 2 or 7" << endl;
-//        getline(cin, m_move);
-//        
-//        if(m_game.validMove(m_move, m_player)) {
-//            send("Sent move: " + m_move);
-//            return RECV_MOVE;
-//        }
-//        else {
-//            cout << "Invalid move. Try again" << endl;
-//            return SEND_MOVE;
-//        }
-//    }
-//    
-//    else {
-//        m_reason = "Game over";
-//        return GAME_END;
-//    }
-    return -1;
+    if(!m_game.isGameOver()) {
+        if(m_resend_move) {
+            if(!sent(MOVE, m_last_move)) {       // Send failed
+                cerr << "BGP: Send error in SEND_MOVE, last MOVE message" << endl;
+                disconnect();
+                return -1;
+            }
+            m_resend_move = false;
+            return RECV_MOVE;
+        }
+        
+        cout << "Enter your move:" << endl;
+        cout << "e.g. 2 or 7" << endl;
+        getline(cin, m_move);
+            
+        switch(m_move[0]) {
+            case 'Q':
+            case 'q':
+                m_reason = GameEnums::QUIT;
+                if(!sent(GAMEEND, to_string(m_reason))) {       // Send failed
+                    cerr << "BGP: Send error in SEND_MOVE, GAMEEND message" << endl;
+                    disconnect();
+                    return -1;
+                }
+                return GAME_END;
+                
+            case 'R':
+            case 'r':
+                if(!sent(RESET, "")) {       // Send failed
+                    cerr << "BGP: Send error in SEND_MOVE, RESET message" << endl;
+                    disconnect();
+                    return -1;
+                }
+                return SEND_RESET;
+                
+            default:
+                if(m_game.validMove(m_move, m_player)) {
+                    m_last_move = m_move;
+                    if(!sent(MOVE, m_move)) {       // Send failed
+                        cerr << "BGP: Send error in SEND_MOVE, MOVE message" << endl;
+                        disconnect();
+                        return -1;
+                    }
+                    return RECV_MOVE;
+                }
+                else {
+                    cout << "Invalid move. Try again." << endl;
+                    return SEND_MOVE;
+                }
+                return RECV_MOVE;
+        }
+    }
+    
+    else {
+        m_reason = GameEnums::GAMEOVER;
+        if(!sent(GAMEEND, to_string(m_reason))) {       // Send failed
+            cerr << "BGP: Send error in SEND_MOVE, INVMOVE message" << endl;
+            disconnect();
+            return -1;
+        }
+        return GAME_END;
+    }
+}
+
+int Client::requestReset()
+{
+    PDU in_pdu;
+    
+    cout << "Waiting for reset response from opponent..." << endl;
+    
+    if(receivedHeader(in_pdu)) { // valid header received
+        switch(in_pdu.m_header.m_message_type) {
+            case RESETACK:
+                return GAME_START;
+                
+            case RESETNACK:
+                return SEND_MOVE;
+            
+            default:
+                cerr << "BGP: Invalid message type in SEND_RESET: " << in_pdu.m_header.m_message_type << endl;
+                return -1;
+        }
+    }
+    
+    else {
+        cerr << "BGP: No message received from server in SEND_RESET" << endl; // time out case
+        disconnect();
+        return -1;
+    }
+}
+
+int Client::resetResponse()
+{
+    string response;
+    
+    cout << "Opponent requested restart" << endl;
+    cout << "Accept or Decline [y/n]" << endl;
+    getline(cin, response);
+    
+    switch(response[0]) {
+        case 'Y':
+        case 'y':
+            if(!sent(RESETACK, "")) {       // Send failed
+                cerr << "BGP: Send error in RECV_RESET, RESETACK message" << endl;
+                disconnect();
+                return -1;
+            }
+            return GAME_START;
+        case 'N':
+        case 'n':
+            if(!sent(RESETNACK, "")) {       // Send failed
+                cerr << "BGP: Send error in RECV_RESET, RESETNACK message" << endl;
+                disconnect();
+                return -1;
+            }
+            return RECV_MOVE;
+        default:
+            cout << "Invalid response. Try again." << endl;
+            return RECV_RESET;
+    }
 }
 
 int Client::gameOver()
 {
-//    send("Sent reason for game over");
-//    cout << "Quitting application..." << endl;
-    return -1;
+    PDU in_pdu;
+    
+    cout << "Gameover: ";
+    
+    if(!m_gameover) {
+        if(receivedHeader(in_pdu)) { // valid header received
+            switch(in_pdu.m_header.m_message_type) {
+                case GAMEENDACK:
+                    cout << reason(m_reason) << endl;
+                    return IDLE;
+                default:
+                    cerr << "BGP: Invalid message type in GAME_END: " << int(in_pdu.m_header.m_message_type) << endl;
+                    disconnect();
+                    return -1;
+            }
+        }
+        else {
+            cerr << "BGP: No message received from server in GAME_END" << endl; // time out case
+            disconnect();
+            return -1;
+        }
+    }
+    
+    else {
+        m_gameover = false;
+        if(!sent(GAMEENDACK, to_string(m_reason))) {       // Send failed
+            cerr << "BGP: Send error in GAME_END, GAMEENDACK message" << endl;
+            return -1;
+        }
+        cout << reason(m_reason) << endl;
+        return IDLE;
+    }
 }
 
 void Client::drawLine()
 {
     cout << "----------------------------------------------------" << endl;
+}
+
+int Client::startPosition(int player)
+{    
+    switch (player) {
+        case GameEnums::PLAYER1:
+            cout << "You are player " << (m_player+1) << endl;
+            return SEND_MOVE;
+        case GameEnums::PLAYER2:
+            cout << "You are player " << (m_player+1) << endl;
+            return RECV_MOVE;
+        default:
+            cout << "BGP: Cannot assign player number: " << player << endl;
+            return GAME_START;
+    }
+}
+
+int Client::opponent(int player)
+{
+    switch (player) {
+        case GameEnums::PLAYER1:
+            return GameEnums::PLAYER2;
+        case GameEnums::PLAYER2:
+            return GameEnums::PLAYER1;
+        default:
+            cout << "BGP: Cannot return opponent number: " << player << endl;
+            return player;
+    }
+}
+
+string Client::reason(int r)
+{
+    switch(r) {
+        case GameEnums::GAMEOVER:
+            return "Gameplay has finished";
+        case GameEnums::OPPLEFT:
+            return "Oppenent ended the game";
+        case GameEnums::QUIT:
+            return "You ended the game";
+        default:
+            cout << "BGP: Invalid game end reason: " << r << endl;
+            return "";
+    }
+}
+
+void Client::disconnect()
+{
+    cout << "Disconnecting from " << m_server_address << " on port " << m_port << "..." << endl;
+    shutdown(m_sock, SHUT_RDWR);
+    close(m_sock);
 }
 
 bool Client::connected(string address , int port)
@@ -238,7 +515,7 @@ bool Client::connected(string address , int port)
             cerr << ("Could not create socket") << endl;
         }
         
-        cout << "Socket created" << endl;
+        cerr << "Socket created" << endl;
     }
     else    {   /* OK , nothing */  }
     
@@ -257,8 +534,10 @@ bool Client::connected(string address , int port)
         return false;
     }
     
-    cout<<"Connected to " << m_server_address << " on port " << m_port << endl;
-    return true;
+    else {
+        cout<<"Connected to " << m_server_address << " on port " << m_port << endl;
+        return true;
+    }
 }
 
 string Client::lookupHostname(string hostname)

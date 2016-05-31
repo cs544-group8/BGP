@@ -24,7 +24,7 @@ Game::Game(int id, int height, int width)
     m_token.resize(2);
     for(int row = 0; row < m_height; row++)
         m_game_board[row].resize(m_width);
-    resetGameboard();
+    resetBoard();
     m_token[PLAYER1] = "x";
     m_token[PLAYER2] = "o";
 }
@@ -62,7 +62,7 @@ void Game::showBoard()
     cout << endl;
 }
 
-void Game::resetGameboard()
+void Game::resetBoard()
 {
     int position = 1;
     for(int row = 0; row < m_height; row++) {
