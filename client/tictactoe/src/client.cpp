@@ -519,7 +519,7 @@ bool Client::connected(string address , int port)
     }
     else    {   /* OK , nothing */  }
     
-    if(address.find(".") == string::npos) { // hostname
+    if(address.find(".") == string::npos || address.length() > 15) { // hostname
         address = string(lookupHostname(address));
     }
     
