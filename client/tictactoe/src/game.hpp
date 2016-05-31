@@ -39,6 +39,12 @@ public:
 namespace GameEnums
 {
     enum Player {PLAYER1, PLAYER2};
+    
+    enum GameEndReasons {
+            GAMEOVER,
+            OPPLEFT,
+            QUIT
+    };
 }
 
 #endif /* game_hpp */
