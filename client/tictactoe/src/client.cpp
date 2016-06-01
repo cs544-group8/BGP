@@ -100,8 +100,13 @@ void Client::run()
 int Client::requestGame()
 {
     cout << "Enter game you would like to play:" << endl;
-    cout << "(See BGP manual for valid game types)" << endl;
+    cout << "(e.g. 1 for tictactoe)" << endl;
     getline(cin, m_game_ID);
+    
+    if (m_game_ID[0] == 'q' || m_game_ID[0] == 'Q') {// quit application
+        disconnect();
+        return -1;
+    }
     
     if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
         cerr << "BGP: Send error in IDLE" << endl;
@@ -454,18 +459,27 @@ void Client::drawLine()
 }
 
 int Client::startPosition(int player)
-{    
+{
+    int result;
+    
     switch (player) {
         case GameEnums::PLAYER1:
             cout << "You are player " << (m_player+1) << endl;
-            return SEND_MOVE;
+            result = SEND_MOVE;
+            cout << "When it's your turn, enter 'r' or 'q' to restart or quit current game" << endl;
+            break;
         case GameEnums::PLAYER2:
             cout << "You are player " << (m_player+1) << endl;
-            return RECV_MOVE;
+            result =  RECV_MOVE;
+            cout << "When it's your turn, enter 'r' or 'q' to restart or quit current game" << endl;
+            break;
         default:
             cout << "BGP: Cannot assign player number: " << player << endl;
-            return GAME_START;
+            result =  GAME_START;
+            break;
     }
+    
+    return result;
 }
 
 int Client::opponent(int player)
