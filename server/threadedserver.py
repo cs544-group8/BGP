@@ -18,7 +18,9 @@ import SocketServer
 import logging
 import state_machine
 import socket
+import struct
 from optparse import OptionParser
+
 
 # CONCURRENT - Handler implemented to be used for each client connection.
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
@@ -37,6 +39,8 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 logging.error("Caught socket.error: {} - Deleting state machine for connection and ending the thread".format(e))
                 self.server.removeFromStateMachineList(statemachine)
                 running = False
+            except struct.error, e:
+                logging.error("Caught Exception parsing message (wrong format): {}".format(e))
         return
 
 # SERVICE - Part that implements threaded service
