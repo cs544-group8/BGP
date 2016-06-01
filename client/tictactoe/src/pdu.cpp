@@ -54,6 +54,8 @@ void PDU::buildPDU(unsigned int id, int message, string data)
             break;
         case GAMEEND:
             this->m_header.m_message_type = GAMEEND;
+            memcpy(&this->m_payload.m_data, prep_data, data.length());
+            this->m_header.m_length = data.length();
             break;
         case GAMEENDACK:
             this->m_header.m_message_type = GAMEENDACK;
