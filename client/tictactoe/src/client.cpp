@@ -49,11 +49,11 @@ void Client::run()
     while(!done) {
         switch(m_client_state) {
             case IDLE:
+                m_client_id = 0;
                 m_client_state = requestGame();
                 break;
                 
             case ASSIGN_ID:
-                m_client_id = 0;
                 m_client_state = assignID();
                 break;
                 
@@ -309,7 +309,7 @@ int Client::outgoingMove()
             case 'Q':
             case 'q':
                 m_reason = GameEnums::QUIT;
-                if(!sent(GAMEEND, to_string(m_reason))) {       // Send failed
+                if(!sent(GAMEEND, to_string(GameEnums::OPPLEFT))) {       // Send failed
                     cerr << "BGP: Send error in SEND_MOVE, GAMEEND message" << endl;
                     disconnect();
                     return -1;
@@ -439,7 +439,7 @@ int Client::gameOver()
     
     else {
         m_gameover = false;
-        if(!sent(GAMEENDACK, to_string(m_reason))) {       // Send failed
+        if(!sent(GAMEENDACK, "")) {       // Send failed
             cerr << "BGP: Send error in GAME_END, GAMEENDACK message" << endl;
             return -1;
         }
@@ -487,7 +487,7 @@ string Client::reason(int r)
         case GameEnums::GAMEOVER:
             return "Gameplay has finished";
         case GameEnums::OPPLEFT:
-            return "Oppenent ended the game";
+            return "Opponent ended the game";
         case GameEnums::QUIT:
             return "You ended the game";
         default:
@@ -519,7 +519,7 @@ bool Client::connected(string address , int port)
     }
     else    {   /* OK , nothing */  }
     
-    if(address.find(".") == string::npos) { // hostname
+    if(address.find(".") == string::npos || address.length() > 15) { // hostname
         address = string(lookupHostname(address));
     }
     
