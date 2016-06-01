@@ -21,7 +21,7 @@ import message
 HOST,PORT = "localhost", 9999
 client_id = None
 test_twice = True
-test_reset = False
+test_reset = True
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -343,6 +343,7 @@ try:
             print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
             sock.send(msg_to_send)
             update_board(p1_board, 4, "X")
+            print_board(p1_board)
             data = sock.recv(1024)
             print "received {}".format(message_parsing.parse_message(data))
             msg_to_send = message_creation.create_message(1, message.GAMEENDACK, client_id=client_id)

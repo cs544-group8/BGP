@@ -42,7 +42,7 @@ void Game::operator=(const Game &G)
 
 Game::~Game()
 {
-    
+
 }
 
 void Game::showBoard()
@@ -76,28 +76,28 @@ void Game::resetBoard()
 bool Game::validMove(string pos, int player)
 {
     int position;
-    
+
     try {
         position = stoi(pos);
     }
-    
-    catch(std::invalid_argument&) {
+
+    catch(std::exception& e) {
         return false;
     }
-    
+
     int row,col;
     if(position < 1 || position > m_width*m_height) // check for valid position on board
         return false;
-    
+
     row = (position-1)/m_height;
     col = (position-1)%m_width;
-    
+
     if(m_game_board[row][col].compare(pos) == 0) {   // check if position available
         m_game_board[row][col] = m_token[player];
         showBoard();
         return true;
     }
-    
+
     else
         return false;
 }
@@ -108,18 +108,18 @@ bool Game::isGameOver()
         if(m_game_board[row][0] == m_game_board[row][1] && m_game_board[row][0] == m_game_board[row][2])
             return true; // horizontal victory
     }
-    
+
     for(int col = 0; col < m_width; col++) {
         if(m_game_board[0][col] == m_game_board[1][col] && m_game_board[0][col] == m_game_board[2][col])
             return true; // vertical victory
     }
-    
+
     if(m_game_board[0][0] == m_game_board[1][1] && m_game_board[0][0] == m_game_board[2][2])
         return true; // diagonal victory
-    
+
     if(m_game_board[0][2] == m_game_board[1][1] && m_game_board[0][2] == m_game_board[2][0])
         return true; // diagonal victory
-    
+
     int position = 1;
     for(int row = 0; row < m_height; row++) {
         for(int col = 0; col < m_width; col++) {
@@ -129,6 +129,6 @@ bool Game::isGameOver()
             ++position;
         }
     }
-    
+
     return true;    // no available moves found
 }

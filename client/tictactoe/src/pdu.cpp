@@ -15,7 +15,7 @@ PDU::PDU()
     m_header.m_version = 1;
     m_header.m_length = 0;
     m_header.m_reserved = 0;
-    memset(m_payload.m_data,0,1016);    
+    memset(m_payload.m_data,0,1016);
 }
 
 PDU::~PDU()
@@ -28,7 +28,7 @@ void PDU::buildPDU(unsigned int id, int message, string data)
     this->m_header.m_client_ID = id;
     unsigned char prep_data[data.length()];
     data.copy((char*)prep_data, data.length(), 0);
-    
+
     switch(message) {
         case NEWGAMETYPE:
             this->m_header.m_message_type = NEWGAMETYPE;

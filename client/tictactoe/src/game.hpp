@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <vector>
 
 using namespace std;
@@ -22,13 +22,13 @@ public:
     Game();
     Game(int id, int height, int width);
     ~Game();
-    
+
     int m_id;
     int m_width;
     int m_height;
     vector<string> m_token;   // player token
     vector< vector<string> > m_game_board;
-    
+
     void showBoard();
     void resetBoard();
     bool validMove(string position, int player);
@@ -39,7 +39,7 @@ public:
 namespace GameEnums
 {
     enum Player {PLAYER1, PLAYER2};
-    
+
     enum GameEndReasons {
             GAMEOVER,
             OPPLEFT,
