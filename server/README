@@ -1,0 +1,57 @@
+BGP (Board Game Protocol)
+CS544 Computer Networks - Spring 2016 - Protocol Implementation
+Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
+
+Build and run Server:
+  *Requires Python 2.7 and can run on Windows or Linux
+  *run "python threadedserver.py"
+    -listens on all interfaces on port 9999
+
+  *to turn off debug level logging run "python threadedserver.py -q" or "python
+  threadedserver.py --quiet"
+
+Build and run Client
+  *requires the g++ compiler (default on most Linux and Mac OS X systems)
+
+  *run "cd client/tictactoe/src"
+  *run "make" (builds and runs the client application)
+  *Follow the instructions on the prompt
+  	-Special commands:
+      To quit game, enter 'q' or 'Q' on your turn to play
+  	  To request a restart, enter 'r' or 'R' on your turn to play
+  	  To accept or decline a restart, enter 'y' or 'Y' or 'n' or 'N' when prompted
+
+Protocol Requirements
+  *See the Requirements_Team_8.docx file with the submission for requirements to
+  code traceability
+
+Protocol Robustness
+  *BGP is fairly robust to fuzzing.  It performs verification of the message it
+  receives on several levels
+
+  *when server receives any data on the client's socket it tries to parse the message
+  according to the PDU definition. If the data is not in the correct format an exception
+  is thrown and the server terminates the connection
+
+  *once the server correctly parses the message it checks if the version and client id
+  included in the message (if client is required yet) are valid, if they aren't it simply
+  drops the messages and continues on as is
+
+  *once the server verifies version and client id (if client is required yet) it
+  will check the message based on the state. If an invalid message type for the state
+  is received, it drops the message and moves on as is
+
+  *the client parses messages based on the PDU format to verify the version and client
+  id. If those are found invalid, it prints an error and closes the connection
+
+  *the client also verifies messages types it receives in a given state and disconnects
+  if it finds anything invalid with the message it received
+
+  *this was a major part of our protocol and was designed in from the start.  This was
+  tested from the start by simply getting the protocol to work with all the verification
+  in place.  We also attempted sending invalid messages in various situations to see how
+  the protocol parts reacted
+
+Extra Credit
+  *BGP did not implement the extra credit - the client prompts for the hostname
+  or IP of the server
