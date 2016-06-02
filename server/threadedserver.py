@@ -12,11 +12,15 @@
 
 #code adapted from: https://docs.python.org/2/library/socketserver.html
 
+import sys
 import threading
 import SocketServer
 import logging
 import state_machine
 import socket
+import struct
+from optparse import OptionParser
+
 
 # CONCURRENT - Handler implemented to be used for each client connection.
 class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
@@ -35,6 +39,8 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 logging.error("Caught socket.error: {} - Deleting state machine for connection and ending the thread".format(e))
                 self.server.removeFromStateMachineList(statemachine)
                 running = False
+            except struct.error, e:
+                logging.error("Caught Exception parsing message (wrong format): {}".format(e))
         return
 
 # SERVICE - Part that implements threaded service
@@ -100,9 +106,14 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 
 if __name__ == '__main__':
+    parser = OptionParser()
 
+    #if -q or --quiet is passed as a command line option, it will set the log level
+    #to logging.INFO otherwise it defaults to logging.DEBUG
+    parser.add_option('-q','--quiet', action='store_const',const=logging.INFO, dest="log_level", default=logging.DEBUG)
+    options, args = parser.parse_args()
     #configure logging so we have thread names in our print statements automatically
-    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:(%(threadName)s) - %(message)s')
+    logging.basicConfig(level=options.log_level, format='%(levelname)s:(%(threadName)s) - %(message)s')
 
     #Hard coded port number for service.
     port = 9999
