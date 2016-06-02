@@ -174,11 +174,11 @@ class StateMachine:
                             logging.debug("received RESETACK, forwarding to opponent")
                             msg_to_send = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
                             self.printMessageToSend("RESETACK", msg_to_send)
+                            self.player_num = -1
                             self.opponent_sm.setPlayerNum(-1)
                             self.opponent_sm.setCurrentState(GAME_START)
                             self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Game Start")
-                            self.player_num = -1
                             self.state = GAME_START
                         elif msg_recvd.message_type == message.RESETNACK:
                             logging.debug("received RESETNACK, forwarding to opponent")
