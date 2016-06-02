@@ -15,7 +15,6 @@ import game_type
 import logging
 import uuid
 import socket
-import time
 
 class StateMachine:
 
@@ -172,7 +171,7 @@ class StateMachine:
                             logging.debug("going to Server Game Reset")
                             self.state = SERVER_GAME_RESET
                         elif msg_recvd.message_type == message.RESETACK:
-                            logging.debug("received RESETACK message, forwarding to opponent")
+                            logging.debug("received RESETACK, forwarding to opponent")
                             msg_to_send = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
                             self.printMessageToSend("RESETACK", msg_to_send)
                             self.opponent_sm.setPlayerNum(-1)
@@ -182,7 +181,7 @@ class StateMachine:
                             self.player_num = -1
                             self.state = GAME_START
                         elif msg_recvd.message_type == message.RESETNACK:
-                            logging.debug("received RESETNACK message, forwarding to opponent")
+                            logging.debug("received RESETNACK, forwarding to opponent")
                             msg_to_send = message_creation.create_reset_nack_message(self.version, self.opponent_sm.getClientID())
                             self.printMessageToSend("RESETNACK", msg_to_send)
                             self.opponent_sm.setCurrentState(GAME_IN_PROGRESS)
@@ -196,6 +195,8 @@ class StateMachine:
         elif self.state == SERVER_GAME_RESET:
             #SERVER_GAME_RESET State Handling Code
             logging.debug("Current state: Server Game Reset, waiting for opponent to send RESETACK or RESETNACK")
+            while self.state == SERVER_GAME_RESET:
+                pass
             
         elif self.state == GAME_END:
             #GAME_END State Handling Code
