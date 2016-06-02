@@ -178,7 +178,7 @@ class StateMachine:
                 raise socket.error(error_msg)
         elif self.state == SERVER_GAME_RECVD_RESET:
             #SERVER_GAME_RECVD_RESET State Handling Code
-            logging.debug("Current state: Server Game Wait Reset")
+            logging.debug("Current state: Server Game Received Reset")
         elif self.state == SERVER_GAME_WAIT_RESET:
             #SERVER_GAME_WAIT_RESET State Handling Code
             logging.debug("Current state: Server Game Wait Reset")
