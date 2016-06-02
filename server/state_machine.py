@@ -179,6 +179,12 @@ class StateMachine:
         elif self.state == SERVER_GAME_RECVD_RESET:
             #SERVER_GAME_RECVD_RESET State Handling Code
             logging.debug("Current state: Server Game Received Reset")
+            if self.data:
+                self.printMessageToSend("RESETACK", self.data)
+                self.clientsocket.send(self.data)
+                logging.debug("going to Game Start")
+                self.state = GAME_START
+                self.data = None
         elif self.state == SERVER_GAME_WAIT_RESET:
             #SERVER_GAME_WAIT_RESET State Handling Code
             logging.debug("Current state: Server Game Wait Reset")
@@ -194,10 +200,7 @@ class StateMachine:
                         if msg_recvd.message_type == message.RESETACK:
                             logging.debug("received RESETACK, forwarding to opponent")
                             #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
-                            msg_to_send = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
-                            self.printMessageToSend("RESETACK", msg_to_send)
-                            self.opponent_sm.setCurrentState(GAME_START)
-                            self.opponent_sm.clientsocket.send(msg_to_send)
+                            self.opponent_sm.data = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
                             logging.debug("going to Game Start")
                             self.state = GAME_START
                         elif msg_recvd.message_type == message.RESETNACK:
