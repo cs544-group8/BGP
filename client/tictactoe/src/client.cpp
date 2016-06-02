@@ -49,11 +49,11 @@ void Client::run()
     while(!done) {
         switch(m_client_state) {
             case IDLE:
+                m_client_id = 0;
                 m_client_state = requestGame();
                 break;
                 
             case ASSIGN_ID:
-                m_client_id = 0;
                 m_client_state = assignID();
                 break;
                 
@@ -100,8 +100,13 @@ void Client::run()
 int Client::requestGame()
 {
     cout << "Enter game you would like to play:" << endl;
-    cout << "(See BGP manual for valid game types)" << endl;
+    cout << "(e.g. 1 for tictactoe)" << endl;
     getline(cin, m_game_ID);
+    
+    if (m_game_ID[0] == 'q' || m_game_ID[0] == 'Q') {// quit application
+        disconnect();
+        return -1;
+    }
     
     if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
         cerr << "BGP: Send error in IDLE" << endl;
@@ -309,7 +314,7 @@ int Client::outgoingMove()
             case 'Q':
             case 'q':
                 m_reason = GameEnums::QUIT;
-                if(!sent(GAMEEND, to_string(m_reason))) {       // Send failed
+                if(!sent(GAMEEND, to_string(GameEnums::OPPLEFT))) {       // Send failed
                     cerr << "BGP: Send error in SEND_MOVE, GAMEEND message" << endl;
                     disconnect();
                     return -1;
@@ -439,7 +444,7 @@ int Client::gameOver()
     
     else {
         m_gameover = false;
-        if(!sent(GAMEENDACK, to_string(m_reason))) {       // Send failed
+        if(!sent(GAMEENDACK, "")) {       // Send failed
             cerr << "BGP: Send error in GAME_END, GAMEENDACK message" << endl;
             return -1;
         }
@@ -454,18 +459,27 @@ void Client::drawLine()
 }
 
 int Client::startPosition(int player)
-{    
+{
+    int result;
+    
     switch (player) {
         case GameEnums::PLAYER1:
             cout << "You are player " << (m_player+1) << endl;
-            return SEND_MOVE;
+            result = SEND_MOVE;
+            cout << "When it's your turn, enter 'r' or 'q' to restart or quit current game" << endl;
+            break;
         case GameEnums::PLAYER2:
             cout << "You are player " << (m_player+1) << endl;
-            return RECV_MOVE;
+            result =  RECV_MOVE;
+            cout << "When it's your turn, enter 'r' or 'q' to restart or quit current game" << endl;
+            break;
         default:
             cout << "BGP: Cannot assign player number: " << player << endl;
-            return GAME_START;
+            result =  GAME_START;
+            break;
     }
+    
+    return result;
 }
 
 int Client::opponent(int player)
@@ -487,7 +501,7 @@ string Client::reason(int r)
         case GameEnums::GAMEOVER:
             return "Gameplay has finished";
         case GameEnums::OPPLEFT:
-            return "Oppenent ended the game";
+            return "Opponent ended the game";
         case GameEnums::QUIT:
             return "You ended the game";
         default:
@@ -519,7 +533,7 @@ bool Client::connected(string address , int port)
     }
     else    {   /* OK , nothing */  }
     
-    if(address.find(".") == string::npos) { // hostname
+    if(address.find(".") == string::npos || address.length() > 15) { // hostname
         address = string(lookupHostname(address));
     }
     
