@@ -11,6 +11,7 @@
 using namespace ClientEnums;
 using namespace PDUEnums;
 
+
 Client::Client(Game game)
 {
     m_game = game;
@@ -39,6 +40,9 @@ void Client::run()
     cout << "e.g. 192.168.23.136 or GameServer" << endl;
     getline(cin, m_server_address);
     
+    // Service: The client shall connect to the server on a hardcoded port number,
+    // which defaults to port number (port 9999).
+
     if (connected(m_server_address, m_port)) {    // Successful connection
         m_client_state = requestGame();
     }
@@ -46,6 +50,8 @@ void Client::run()
         m_client_state = -1;
     }
     
+    // Stateful: Both client and server must implement, check and validate the statefulness of the BGP protocol DFA.
+
     while(!done) {
         switch(m_client_state) {
             case IDLE:
@@ -103,11 +109,16 @@ int Client::requestGame()
     cout << "(e.g. 1 for tictactoe)" << endl;
     getline(cin, m_game_ID);
     
+    // UI: The client shall implement a command line interface
+
     if (m_game_ID[0] == 'q' || m_game_ID[0] == 'Q') {// quit application
         disconnect();
         return -1;
     }
     
+    // Game Type Validation: The client shall send a NEWGAMETYPE message for
+    // server validation of the game type contained in the message.
+
     if(!sent(NEWGAMETYPE, m_game_ID)) {       // Send failed
         cerr << "BGP: Send error in IDLE" << endl;
         return -1;
@@ -123,6 +134,8 @@ int Client::assignID()
 {
     PDU in_pdu;
     
+    // Client ID: The client shall accept and store a server generated 32 bit Client ID.
+
     if(receivedHeader(in_pdu)) { // valid header received
         switch(in_pdu.m_header.m_message_type) {
             case INVGAMETYPE:
@@ -192,6 +205,8 @@ int Client::assignPlayer()
     PDU in_pdu;
     m_gameover = false;
     
+    // Player ID: The client shall accept and store a server generated Player ID. Player #1 shall make the first move.
+
     if(receivedHeader(in_pdu)) { // valid header received
         switch(in_pdu.m_header.m_message_type) {
             case PLAYERASSIGN:
@@ -245,6 +260,8 @@ int Client::incomingMove()
                         return SEND_MOVE;
                     
                     else {
+                        // Invalid Move: The client shall send an invalid move message to the server,
+                        // when the move is invalid for the game.
                         if(!sent(INVMOVE, "")) {       // Send failed
                             cerr << "BGP: Send error in RECV_MOVE, INVMOVE message" << endl;
                             return -1;
@@ -295,6 +312,8 @@ int Client::incomingMove()
 
 int Client::outgoingMove()
 {
+    // Game Move: The client shall send a game move to the server, when it is the clients turn to move.
+
     if(!m_game.isGameOver()) {
         if(m_resend_move) {
             if(!sent(MOVE, m_last_move)) {       // Send failed
@@ -362,7 +381,9 @@ int Client::outgoingMove()
 int Client::requestReset()
 {
     PDU in_pdu;
-    
+
+    // Reset Game: The client shall send an reset message to the server, when the player request to reset the game.
+
     cout << "Waiting for reset response from opponent..." << endl;
     
     if(receivedHeader(in_pdu)) { // valid header received
@@ -397,6 +418,8 @@ int Client::resetResponse()
     switch(response[0]) {
         case 'Y':
         case 'y':
+            // Reset Game Acknowledgement: The client shall send an reset ack message to the server,
+            // when the player accepts the game reset.
             if(!sent(RESETACK, "")) {       // Send failed
                 cerr << "BGP: Send error in RECV_RESET, RESETACK message" << endl;
                 disconnect();
@@ -405,6 +428,8 @@ int Client::resetResponse()
             return GAME_START;
         case 'N':
         case 'n':
+            // Reset Game Negative Acknowledgement: The client shall send an reset nack message to the server,
+            // when the player rejects the game reset.
             if(!sent(RESETNACK, "")) {       // Send failed
                 cerr << "BGP: Send error in RECV_RESET, RESETNACK message" << endl;
                 disconnect();
@@ -421,6 +446,8 @@ int Client::gameOver()
 {
     PDU in_pdu;
     
+    // Game End: The client shall send an game end message to the server, when the player ends the game.
+
     cout << "Gameover: ";
     
     if(!m_gameover) {
@@ -441,7 +468,8 @@ int Client::gameOver()
             return -1;
         }
     }
-    
+        // Game End Acknowledgement: The client shall send an game end acknowledgement message to the server,
+        // when the player accepts the game end.
     else {
         m_gameover = false;
         if(!sent(GAMEENDACK, "")) {       // Send failed
@@ -533,6 +561,8 @@ bool Client::connected(string address , int port)
     }
     else    {   /* OK , nothing */  }
     
+    // IP and hostname: Client shall be able to specify the hostname and/or the IP address of the server.
+
     if(address.find(".") == string::npos || address.length() > 15) { // hostname
         address = string(lookupHostname(address));
     }
@@ -612,6 +642,9 @@ bool Client::receivedHeader(const PDU &in_pdu)
     
     memcpy((char *)&in_pdu.m_header, buffer, 8);   // no idea if this works
     
+    // PDU Validation: The client shall validate the protocol version, message type,
+    // and client ID of all messages received.
+
     if(in_pdu.m_header.m_version != m_version) {  // invalid version
         cerr << "Invalid header version" << endl;
         return false;
