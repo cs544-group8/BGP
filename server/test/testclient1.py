@@ -150,12 +150,21 @@ try:
         print_board(p2_board)
         if test_reset:
             msg_to_send = message_creation.create_message(1, message.RESET, client_id=client_id, payload="Cat Game")
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
+            msg_to_send = message_creation.create_message(1, message.RESET, client_id=client_id, payload="Cat Game")
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
         else:
             msg_to_send = message_creation.create_message(1, message.GAMEEND, client_id=client_id, payload="Cat Game")
-        print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
-        sock.send(msg_to_send)
-        data = sock.recv(1024)
-        print "received {}".format(message_parsing.parse_message(data))
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
     else:
         msg_to_send = message_creation.create_message(1, message.MOVE, client_id=client_id, payload="1")
         print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
@@ -205,11 +214,18 @@ try:
         data = sock.recv(1024)
         print "received {}".format(message_parsing.parse_message(data))
         if test_reset:
+            msg_to_send = message_creation.create_message(1, message.RESETNACK, client_id=client_id)
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
+            data = sock.recv(1024)
+            print "received {}".format(message_parsing.parse_message(data))
             msg_to_send = message_creation.create_message(1, message.RESETACK, client_id=client_id)
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
         else:
             msg_to_send = message_creation.create_message(1, message.GAMEENDACK, client_id=client_id)
-        print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
-        sock.send(msg_to_send)
+            print "sent ({} bytes): {}".format(len(msg_to_send), message_parsing.parse_message(msg_to_send))
+            sock.send(msg_to_send)
 
     if test_twice:
         p1_board = []

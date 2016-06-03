@@ -180,11 +180,20 @@ class StateMachine:
         elif self.state == RESET_RECEIVED:
             #RESET_RECEIVED State Handling Code
             logging.debug("Current state: Reset Received")
+            while self.data == None:
+                continue
             if self.data:
-                self.printMessageToSend("RESETACK", self.data)
-                self.clientsocket.send(self.data)
-                logging.debug("going to Game Start")
-                self.state = GAME_START
+                msg_to_send = message_parsing.parse_message(self.data)
+                if msg_to_send.message_type == message.RESETACK:
+                    self.printMessageToSend("RESETACK", self.data)
+                    self.clientsocket.send(self.data)
+                    logging.debug("going to Game Start")
+                    self.state = GAME_START
+                elif msg_to_send.message_type == message.RESETNACK:
+                    self.printMessageToSend("RESETNACK", self.data)
+                    self.clientsocket.send(self.data)
+                    logging.debug("going to Game in Progress")
+                    self.state = GAME_IN_PROGRESS
                 self.data = None
         elif self.state == RESET_WAIT:
             #RESET_WAIT State Handling Code
@@ -207,10 +216,7 @@ class StateMachine:
                         elif msg_recvd.message_type == message.RESETNACK:
                             logging.debug("received RESETNACK, forwarding to opponent")
                             #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
-                            msg_to_send = message_creation.create_reset_nack_message(self.version, self.opponent_sm.getClientID())
-                            self.printMessageToSend("RESETNACK", msg_to_send)
-                            self.opponent_sm.setCurrentState(GAME_IN_PROGRESS)
-                            self.opponent_sm.clientsocket.send(msg_to_send)
+                            self.opponent_sm.data = message_creation.create_reset_nack_message(self.version, self.opponent_sm.getClientID())
                             logging.debug("going to Game in Progress")
                             self.state = GAME_IN_PROGRESS
                     else:
