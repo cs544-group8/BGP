@@ -307,7 +307,7 @@ int Client::incomingMove()
                     try {
                         m_reason = atoi((char*)in_pdu.m_payload.m_data);
                     }
-                    catch (std::invalid_argument&){
+                    catch (std::exception& e){
                         cerr << "BGP: Invaid reason. Must be a number" << endl;
                         return -1;
                     }
