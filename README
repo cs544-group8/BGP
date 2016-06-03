@@ -3,7 +3,9 @@ github: https://github.com/cs544-group8/BGP
 CS544 Computer Networks - Spring 2016 - Protocol Implementation
 Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
-Video demo: See video.txt for the youtube link to the demo of BGP in action
+Video demo: <insert YouTube link here>
+
+Team Evaluation: See Evaluation_Team_8.txt
 
 Build and run Server:
   *Requires Python 2.7 and can run on Windows, Linux or Mac OS X
@@ -13,23 +15,29 @@ Build and run Server:
   *to turn off debug level logging run "python threadedserver.py -q" or "python
   threadedserver.py --quiet"
     -debug level will print all log statements including message received and sent
-    -the quiet option does not print debug statements, only info level and more important 
-    which in our case will show connection related log statements as well as "Current State"
-    print outs for each thread
+    -the quiet option does not print debug level statements, only info, warning and 
+    error level messages which in our case will show connection related log statements
+    as well as "Current State" print outs for each active thread
 
 Build and run Client
 
   *requires the g++ compiler
 
   *the client was originally developed on and for Mac OS X, we were however, able to
-  port it over to a Linux build (built and tested on tux.cs.drexel.edu)
+  port it over to a Linux build (built and tested on tux.cs.drexel.edu so we know it works
+  on a Linux Ubuntu 14.04LTS box)
 
   *the client/tictactoe directory is the Mac OS X version
   *the client/tictactoe-linux directory is the Linux version
 
-  *to run the server "cd client/tictactoe/src" (for Mac OS X) or "cd client/tictactoe-linux/src" 
-  (for Linux)
-  *run "make" (builds and runs the client application)
+  *change directory to client/tictactoe/src or client/tictactoe-linux/src (depending on OS choice)
+  *to build and run the client application:
+    -run 'make'
+  *to only build the client application:
+    -run 'make build'
+  *to only run the client application (binaries included with submission):
+    -run './tictactoe'
+
   *Follow the instructions on the prompt
   	-Special commands:
       To quit game, enter 'q' or 'Q' on your turn to play
@@ -40,8 +48,8 @@ Protocol Requirements
   *See the Requirements_Team_8.txt file for requirements to code traceability
 
 Protocol Robustness
-  *BGP is fairly robust to fuzzing, but does have certain strengths and weaknesses at this point
-  in the implementation. 
+  *BGP is fairly robust to fuzzing, but does have certain strengths and weaknesses in the
+  current implementation
 
   *Its strength against fuzzing pertains to verification of messages that protocol implementers
   receive on serveral levels:

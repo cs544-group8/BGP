@@ -1,0 +1,19 @@
+BGP (Board Game Protocol)
+CS544 - Computer Networks - Spring 2016 - Team Member Evaluation
+Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
+
+As a group we agreed upon the fact that all team members had contributed equally to the protocol design and protocol implementation projects.  Therefore only a single evaluation document was deemed necessary.  Overall, each team member was very good about catering to everyone's varying schedules, being available when asked and providing their completed portion of work in a timely manner.  It was a surprisingly agreeable group (a certain rarity amongst engineers).  There were no major arguments or team members becoming fed up with each other.  Working together as a group was, more or less, about as smooth as it could have been.  Furthermore all team members were very open to constructive criticism and suggested alternatives by other team members. In summary, all team members should receive an equal portion of the grade earned on the BGP protocol implementation.
+
+Protocol Design work breakdown:
+
+Service Description: TJ Rhodes
+Message Definition: Marc Thomson (with help/input from everyone since this was a constantly evolving piece of the project)
+DFA: Brian Quinn (with help/input from everyone since this was a large/complex/constantly evolving piece of the project)
+Extensibility: Ryan Mann
+Security Implications: all team members
+
+Protocol Implementation work breakdown:
+
+Server: Brian Quinn and Ryan Mann
+Client: TJ Rhodes and Marc Thomson
+
