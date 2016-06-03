@@ -22,9 +22,12 @@ PDU::~PDU()
 {
 }
 
-
+// helper method build PDUs to send to the server
 void PDU::buildPDU(unsigned int id, int message, string data)
 {
+    // Client ID Authentication: The client shall include the Client ID in all messages sent,
+    // after receiving the Client ID.
+
     this->m_header.m_client_ID = id;
     unsigned char prep_data[data.length()];
     data.copy((char*)prep_data, data.length(), 0);

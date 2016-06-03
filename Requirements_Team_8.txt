@@ -2,7 +2,7 @@ BGP Protocol Requirements
 
 Client/Server Requirements:
     Stateful: Both client and server must implement, check and validate the statefulness of the BGP protocol DFA.
-        Client: <file(s) or location(s) in code>
+        Client: client/tictactoe/src/client.cpp Client::run()
         Server: server/state_machine.py
 
 Server-specific Requirements:
@@ -33,8 +33,49 @@ Server-specific Requirements:
 
 Client-specific Requirements:
 
-    IP and hostname: Client must be able to specify the hostname and/or the IP address of the server.
-        Client: <file(s) or location(s) in code>
+    IP and hostname: Client shall be able to specify the hostname and/or the IP address of the server.
+        Client: client/tictactoe/src/client.cpp Client::connected()
 
     UI: The client shall implement a command line interface
-        Client: <file(s) or location(s) in code>
+        Client: client/tictactoe/src/client.cpp Client::requestGame()
+
+    Service: The client shall connect to the server on a hardcoded port number, which defaults to port number (port 9999).
+       Client: client/tictactoe/src/client.cpp Client::run()
+
+    Game Type Validation: The client shall send a NEWGAMETYPE message for server validation of the game type contained in the message.
+       Client: client/tictactoe/src/client.cpp Client::requestGame()
+
+    Client ID: The client shall accept and store a server generated 32 bit Client ID.
+       Client: client/tictactoe/src/client.cpp Client::assignID()
+
+    Client ID Authentication: The client shall include the Client ID in all messages sent, after receiving the Client ID.
+       Client: client/tictactoe/src/pdu.cpp PDU::buildPDU()
+
+    PDU Validation: The client shall validate the protocol version, message type, and client ID of all messages received.
+       Client: client/tictactoe/src/client.cpp Client::receivedHeader()
+
+    Player ID: The client shall accept and store a server generated Player ID. Player #1 shall make the first move.
+       Client: client/tictactoe/src/client.cpp Client::assignPlayer()
+
+    Game Move: The client shall send a game move to the server, when it is the clients turn to move.
+       Client: client/tictactoe/src/client.cpp Client::outgoingMove()
+
+    Invalid Move: The client shall send an invalid move message to the server, when the move is invalid for the game.
+       Client: client/tictactoe/src/client.cpp Client::incomingMove()
+
+    Reset Game: The client shall send an reset message to the server, when the player request to reset the game.
+       Client: client/tictactoe/src/client.cpp Client::requestReset()
+
+    Reset Game Acknowledgement: The client shall send an reset ack message to the server, when the player accepts the game reset.
+       Client: client/tictactoe/src/client.cpp Client::resetResponse()
+
+    Reset Game Negative Acknowledgement: The client shall send an reset nack message to the server, when the player rejects the game reset.
+       Client: client/tictactoe/src/client.cpp Client::resetResponse()
+
+    Game End: The client shall send an game end message to the server, when the player ends the game.
+       Client: client/tictactoe/src/client.cpp Client::gameOver()
+
+    Game End Acknowledgement: The client shall send an game end acknowledgement message to the server, when the player accepts the game end.
+       Client: client/tictactoe/src/client.cpp Client::gameOver()
+
+

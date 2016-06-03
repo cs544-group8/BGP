@@ -12,6 +12,7 @@
 using namespace std;
 using namespace ClientEnums;
 
+// Main method to start the client
 int main(int argc, const char * argv[]) {
     Game tictactoe(1,3,3);    // game_ID, height, width
         

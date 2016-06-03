@@ -16,6 +16,8 @@
 
 using namespace std;
 
+// Game class
+// contains the class attributes and method prototypes
 class Game
 {
 public:
@@ -36,6 +38,7 @@ public:
     void operator=(const Game &G);
 };
 
+// Game Ending Reasons enumeration
 namespace GameEnums
 {
     enum Player {PLAYER1, PLAYER2};
