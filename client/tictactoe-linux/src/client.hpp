@@ -22,12 +22,14 @@
 
 using namespace std;
 
+// Game class
+// contains the class attributes and method prototypes
 class Client
 {
 public:
     Client(Game game);
     ~Client();
-
+    
     // Communication
     string m_server_address;
     int m_port;
@@ -39,7 +41,7 @@ public:
     bool sent(int message, string data);
     bool receivedHeader(const PDU & pdu);
     bool receivedPayload(const PDU & pdu);
-
+    
     // Game
     Game m_game;
     string m_game_ID;
@@ -50,7 +52,7 @@ public:
     int m_reason;
     bool m_resend_move;
     bool m_gameover;
-
+    
     // States
     int m_client_state;
     void start(int initial_state);              // Set initial client state
@@ -65,15 +67,16 @@ public:
     int resetResponse();
     int gameOver();
     void drawLine();
-
+    
     // Misc
-    unsigned char m_version;
+    unsigned char m_version;    
     unsigned int m_client_id;
     int startPosition(int player);
     int opponent(int player);
     string reason(int r);
 };
 
+// Cleint State enumerations
 namespace ClientEnums
 {
     enum States {   IDLE,

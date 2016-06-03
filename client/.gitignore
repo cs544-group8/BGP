@@ -2,3 +2,4 @@
 *.xcodeproj
 *.o
 tictactoe/src/tictactoe
+tictactoe-linux/src/tictactoe

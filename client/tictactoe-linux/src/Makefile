@@ -1,4 +1,4 @@
-PROGRAM = tictactoe
+PROGRAM=tictactoe
 CFLAGS = -std=c++0x
 
 all: run
@@ -10,4 +10,4 @@ build:
 	@g++ $(CFLAGS) *.cpp -o $(PROGRAM)
 
 clean:
-	@rm *o
+	@rm *o	
