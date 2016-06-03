@@ -40,7 +40,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 self.server.removeFromStateMachineList(statemachine)
                 running = False
             except struct.error, e:
-                logging.error("Caught Exception parsing message (wrong format): {}".format(e))
+                logging.error("Caught struct.error parsing message (wrong format): {}".format(e))
         return
 
 # SERVICE - Part that implements threaded service
@@ -99,9 +99,16 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     def assignPlayerNum(self, client_id):
         sm_to_set = self.getStateMachineByClientID(client_id)
         self.lock.acquire()
-        if sm_to_set.getPlayerNum() == -1:
+        opp_sm = sm_to_set.opponent_sm
+        # if sm_to_set.getPlayerNum() == -1:
+        #     sm_to_set.setPlayerNum(0)
+        #     sm_to_set.setPlayerNum(1)
+        if sm_to_set.getPlayerNum() == -1 and opp_sm.getPlayerNum() == 0:
+            sm_to_set.setPlayerNum(1)
+        elif sm_to_set.getPlayerNum() == -1 and opp_sm.getPlayerNum() == 1:
             sm_to_set.setPlayerNum(0)
-            sm_to_set.opponent_sm.setPlayerNum(1)
+        else:
+            sm_to_set.setPlayerNum(0)
         self.lock.release()
 
 

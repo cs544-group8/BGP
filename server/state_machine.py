@@ -67,7 +67,7 @@ class StateMachine:
                 else:
                     logging.warning("message received was invalid, dropping")
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         elif self.state == ASSIGN_ID:
             #ASSIGN_ID State Handling Code
@@ -115,6 +115,7 @@ class StateMachine:
         elif self.state == GAME_START:
             #GAME_START State Handling Code
             logging.debug("Current state: Game Start")
+            self.player_num = -1
             while self.player_num == -1:
                 self.server.assignPlayerNum(self.client_id)
 
@@ -167,18 +168,36 @@ class StateMachine:
                             #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
                             msg_to_send = message_creation.create_reset_message(self.version, self.opponent_sm.getClientID())
                             self.printMessageToSend("RESET", msg_to_send)
-                            self.opponent_sm.setCurrentState(SERVER_GAME_RESET)
+                            self.opponent_sm.setCurrentState(RESET_WAIT)
                             self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Server Game Reset")
-                            self.state = SERVER_GAME_RESET
+                            self.state = RESET_RECEIVED
                     else:
                         logging.warning("message received was invalid, dropping")
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
-        elif self.state == SERVER_GAME_RESET:
-            #SERVER_GAME_RESET State Handling Code
-            logging.debug("Current state: Server Game Reset")
+        elif self.state == RESET_RECEIVED:
+            #RESET_RECEIVED State Handling Code
+            logging.debug("Current state: Reset Received")
+            while self.data == None:
+                continue
+            if self.data:
+                msg_to_send = message_parsing.parse_message(self.data)
+                if msg_to_send.message_type == message.RESETACK:
+                    self.printMessageToSend("RESETACK", self.data)
+                    self.clientsocket.send(self.data)
+                    logging.debug("going to Game Start")
+                    self.state = GAME_START
+                elif msg_to_send.message_type == message.RESETNACK:
+                    self.printMessageToSend("RESETNACK", self.data)
+                    self.clientsocket.send(self.data)
+                    logging.debug("going to Game in Progress")
+                    self.state = GAME_IN_PROGRESS
+                self.data = None
+        elif self.state == RESET_WAIT:
+            #RESET_WAIT State Handling Code
+            logging.debug("Current state: Reset Wait")
             if self.data:
                 data = self.data
                 self.data = None
@@ -186,24 +205,18 @@ class StateMachine:
                 data = self.clientsocket.recv(1024)
             if data:
                 msg_recvd = message_parsing.parse_message(data)
-                if self.state == SERVER_GAME_RESET:
+                if self.state == RESET_WAIT:
                     if self.valid_message(msg_recvd):
                         if msg_recvd.message_type == message.RESETACK:
                             logging.debug("received RESETACK, forwarding to opponent")
                             #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
-                            msg_to_send = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
-                            self.printMessageToSend("RESETACK", msg_to_send)
-                            self.opponent_sm.setCurrentState(GAME_START)
-                            self.opponent_sm.clientsocket.send(msg_to_send)
+                            self.opponent_sm.data = message_creation.create_reset_ack_message(self.version, self.opponent_sm.getClientID())
                             logging.debug("going to Game Start")
                             self.state = GAME_START
                         elif msg_recvd.message_type == message.RESETNACK:
                             logging.debug("received RESETNACK, forwarding to opponent")
                             #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
-                            msg_to_send = message_creation.create_reset_nack_message(self.version, self.opponent_sm.getClientID())
-                            self.printMessageToSend("RESETNACK", msg_to_send)
-                            self.opponent_sm.setCurrentState(GAME_IN_PROGRESS)
-                            self.opponent_sm.clientsocket.send(msg_to_send)
+                            self.opponent_sm.data = message_creation.create_reset_nack_message(self.version, self.opponent_sm.getClientID())
                             logging.debug("going to Game in Progress")
                             self.state = GAME_IN_PROGRESS
                     else:
@@ -211,7 +224,7 @@ class StateMachine:
                 else:
                     self.data = data
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         elif self.state == GAME_END:
             #GAME_END State Handling Code
@@ -239,7 +252,7 @@ class StateMachine:
                 else:
                     self.data = data
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         else:
             raise Exception('Server in invalid state')
@@ -280,5 +293,6 @@ ASSIGN_ID = 0x2
 FIND_OPPONENT = 0x3
 GAME_START = 0x4
 GAME_IN_PROGRESS = 0x5
-SERVER_GAME_RESET = 0x6
-GAME_END = 0x7
+RESET_RECEIVED = 0x6
+RESET_WAIT = 0x7
+GAME_END = 0x8
