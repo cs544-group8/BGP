@@ -8,7 +8,7 @@ Video demo: See video.txt for the youtube link to the demo of BGP in action
 Build and run Server:
   *Requires Python 2.7 and can run on Windows, Linux or Mac OS X
   *run "python threadedserver.py"
-    -listens on all interfaces on port 9999 ()
+    -listens on all interfaces on port 9999
 
   *to turn off debug level logging run "python threadedserver.py -q" or "python
   threadedserver.py --quiet"
@@ -27,7 +27,8 @@ Build and run Client
   *the client/tictactoe directory is the Mac OS X version
   *the client/tictactoe-linux directory is the Linux version
 
-  *to run the server "cd client/tictactoe/src" (for Mac OS X) or "cd client/tictactoe-linux/src" (for Linux)
+  *to run the server "cd client/tictactoe/src" (for Mac OS X) or "cd client/tictactoe-linux/src" 
+  (for Linux)
   *run "make" (builds and runs the client application)
   *Follow the instructions on the prompt
   	-Special commands:
