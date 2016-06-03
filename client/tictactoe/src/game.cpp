@@ -10,11 +10,13 @@
 
 using namespace GameEnums;
 
+// constructor for the Game Board object
 Game::Game()
 {
     m_token.resize(2);
 }
 
+// constructor for the Game Object that initializes the class attributes
 Game::Game(int id, int height, int width)
 {
     m_id = id;
@@ -29,6 +31,7 @@ Game::Game(int id, int height, int width)
     m_token[PLAYER2] = "o";
 }
 
+// game object operator method
 void Game::operator=(const Game &G)
 {
     m_id = G.m_id;
@@ -40,11 +43,13 @@ void Game::operator=(const Game &G)
     m_game_board = G.m_game_board;
 }
 
+// default constructor
 Game::~Game()
 {
     
 }
 
+// displays the game board to the player
 void Game::showBoard()
 {
     for(int row = 0; row < m_height; row++) {
@@ -62,6 +67,7 @@ void Game::showBoard()
     cout << endl;
 }
 
+// initializes the game board object to its initial state
 void Game::resetBoard()
 {
     int position = 1;
@@ -73,6 +79,7 @@ void Game::resetBoard()
     }
 }
 
+// updates the game board with a valid move
 bool Game::validMove(string pos, int player)
 {
     int position;
@@ -102,6 +109,7 @@ bool Game::validMove(string pos, int player)
         return false;
 }
 
+// evaluates the game board object to determine if the game is ended
 bool Game::isGameOver()
 {
     for(int row = 0; row < m_height; row++) {

@@ -23,6 +23,8 @@
 
 using namespace std;
 
+// Game class
+// contains the class attributes and method prototypes
 class Client
 {
 public:
@@ -75,6 +77,7 @@ public:
     string reason(int r);
 };
 
+// Cleint State enumerations
 namespace ClientEnums
 {
     enum States {   IDLE,

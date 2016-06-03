@@ -15,6 +15,7 @@
 #include <vector>
 using namespace std;
 
+// PDU header structure
 struct pduHeader {
     unsigned char m_version;
     unsigned char m_message_type;
@@ -23,10 +24,13 @@ struct pduHeader {
     unsigned int m_client_ID;
 };
 
+// PDU payload structure
 struct pduPayload {
     unsigned char m_data[1016];
 };
 
+// PDU class that contains a PDU header and PDU payload
+// contains the class attributes and method prototypes
 class PDU
 {
 public:
@@ -42,6 +46,7 @@ public:
     
 };
 
+// PDU message types enumeration
 namespace PDUEnums
 {
     enum Messages {
