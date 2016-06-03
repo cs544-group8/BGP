@@ -88,6 +88,10 @@ Protocol Robustness
     -this weakness isn't necessarily a direct blemish on the BGP protocol itself, rather how thread 
     handling and locking were implemented on our server that implements BGP.
 
+    -bottom line: if you ctrl+c out of the client at a random moment, the current implementation may not
+    handle it well. If you use the built in quit mechanism or the game ends naturally and you ctrl+c while
+    in the idle state (prompt asking you for game type) the server will handle it gracefully.
+
 Extra Credit
   *BGP did not implement the extra credit - the client prompts for the hostname
   or IP of the server
