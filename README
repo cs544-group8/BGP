@@ -3,18 +3,31 @@ github: https://github.com/cs544-group8/BGP
 CS544 Computer Networks - Spring 2016 - Protocol Implementation
 Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
+Video demo: See video.txt for the youtube link to the demo of BGP in action
+
 Build and run Server:
-  *Requires Python 2.7 and can run on Windows or Linux
+  *Requires Python 2.7 and can run on Windows, Linux or Mac OS X
   *run "python threadedserver.py"
-    -listens on all interfaces on port 9999
+    -listens on all interfaces on port 9999 ()
 
   *to turn off debug level logging run "python threadedserver.py -q" or "python
   threadedserver.py --quiet"
+    -debug level will print all log statements including message received and sent
+    -the quiet option does not print debug statements, only info level and more important 
+    which in our case will show connection related log statements as well as "Current State"
+    print outs for each thread
 
 Build and run Client
-  *requires the g++ compiler (default on most Linux and Mac OS X systems)
 
-  *run "cd client/tictactoe/src"
+  *requires the g++ compiler
+
+  *the client was originally developed on and for Mac OS X, we were however, able to
+  port it over to a Linux build (built and tested on tux.cs.drexel.edu)
+
+  *the client/tictactoe directory is the Mac OS X version
+  *the client/tictactoe-linux directory is the Linux version
+
+  *to run the server "cd client/tictactoe/src" (for Mac OS X) or "cd client/tictactoe-linux/src" (for Linux)
   *run "make" (builds and runs the client application)
   *Follow the instructions on the prompt
   	-Special commands:
@@ -27,31 +40,45 @@ Protocol Requirements
   code traceability
 
 Protocol Robustness
-  *BGP is fairly robust to fuzzing.  It performs verification of the message it
-  receives on several levels
+  *BGP is fairly robust to fuzzing, but does have certain strengths and weaknesses at this point
+  in the implementation. 
 
-  *when server receives any data on the client's socket it tries to parse the message
-  according to the PDU definition. If the data is not in the correct format an exception
-  is thrown and the server terminates the connection
+  *Its strength against fuzzing pertains to verification of messages that protocol implementers
+  receive on serveral levels:
 
-  *once the server correctly parses the message it checks if the version and client id
-  included in the message (if client is required yet) are valid, if they aren't it simply
-  drops the messages and continues on as is
+    -when the server receives any data on the client's socket it tries to parse the message
+    according to the PDU definition. If the data is not in the correct format an exception
+    is thrown and the server terminates the connection
 
-  *once the server verifies version and client id (if client is required yet) it
-  will check the message based on the state. If an invalid message type for the state
-  is received, it drops the message and moves on as is
+    -once the server correctly parses the message it checks if the version and client id
+    included in the message (if client is required yet) are valid, if they aren't it simply
+    drops the messages and continues on as is
 
-  *the client parses messages based on the PDU format to verify the version and client
-  id. If those are found invalid, it prints an error and closes the connection
+    -once the server verifies version and client id (if client is required yet) it
+    will check the message based on the state. If an invalid message type for the state
+    is received, it drops the message and moves on as is
 
-  *the client also verifies messages types it receives in a given state and disconnects
-  if it finds anything invalid with the message it received
+    -the client parses messages based on the PDU format to verify the version and client
+    id. If those are found invalid, it prints an error and closes the connection
 
-  *this was a major part of our protocol and was designed in from the start.  This was
-  tested from the start by simply getting the protocol to work with all the verification
-  in place.  We also attempted sending invalid messages in various situations to see how
-  the protocol parts reacted
+    -the client also verifies messages types it receives in a given state and disconnects
+    if it finds anything invalid with the message it received
+
+    -since this message verification feature was designed into the protocol from the start
+    saw a lot of test time since it was part of getting the protocol to work on a basic level.
+    We attempted to throw messages with malformed headers and invalid messages for a given state
+    in order to see how BGP handled it.
+
+  *Its weakness against fuzzing pertains to sudden client disconnections:
+
+    -the threading mechanisms used on the BGP server side aren't perfect, so if a client happens to
+    disconnect at the wrong time, the thread handling that connection may have acquired a 
+    thread lock without releasing it since the client suddenly quit.  This causes all other connection threads to
+    block on that lock, effectively seizing BGP (server will still handle and accept connections but subsequent
+    states of the protocol will be broken).
+
+    -this weakness isn't necessarily a direct blemish on the BGP protocol itself, rather how thread handling
+    and locking were implemented on our server that implements BGP.
 
 Extra Credit
   *BGP did not implement the extra credit - the client prompts for the hostname

@@ -48,7 +48,7 @@ class StateMachine:
     def run_state_machine(self):
         if self.state == IDLE:
             #IDLE State Handling Code
-            logging.debug("Current state: Idle")
+            logging.info("Current State: Idle")
             self.gametype = -1
             self.client_id = 0
             self.player_num = -1
@@ -71,7 +71,7 @@ class StateMachine:
                 raise socket.error(error_msg)
         elif self.state == ASSIGN_ID:
             #ASSIGN_ID State Handling Code
-            logging.debug("current state: Assign ID")
+            logging.info("Current State: Assign ID")
             if self.msg_recvd:
                 if game_type.game_id_check(self.msg_recvd.payload):
                     #valid game type
@@ -98,7 +98,7 @@ class StateMachine:
                     self.msg_recvd = None
         elif self.state == FIND_OPPONENT:
             #FIND_OPPONENT State Handling Code
-            logging.debug("current state: Find Opponent")
+            logging.info("Current State: Find Opponent")
             logging.debug("looping until another client is in Find Opponent")
             #Waiting for opponent.
             while self.opponent_sm == None:
@@ -114,7 +114,7 @@ class StateMachine:
             self.state = GAME_START
         elif self.state == GAME_START:
             #GAME_START State Handling Code
-            logging.debug("Current state: Game Start")
+            logging.info("Current State: Game Start")
             self.player_num = -1
             while self.player_num == -1:
                 self.server.assignPlayerNum(self.client_id)
@@ -129,7 +129,7 @@ class StateMachine:
             self.state = GAME_IN_PROGRESS
         elif self.state == GAME_IN_PROGRESS:
             #GAME_IN_PROGRESS State Handling Code
-            logging.debug("Current state: Game In Progress")
+            logging.info("Current State: Game In Progress")
             if self.data:
                 data = self.data
                 self.data = None
@@ -179,7 +179,7 @@ class StateMachine:
                 raise socket.error(error_msg)
         elif self.state == RESET_RECEIVED:
             #RESET_RECEIVED State Handling Code
-            logging.debug("Current state: Reset Received")
+            logging.info("Current State: Reset Received")
             while self.data == None:
                 continue
             if self.data:
@@ -197,7 +197,7 @@ class StateMachine:
                 self.data = None
         elif self.state == RESET_WAIT:
             #RESET_WAIT State Handling Code
-            logging.debug("Current state: Reset Wait")
+            logging.debug("Current State: Reset Wait")
             if self.data:
                 data = self.data
                 self.data = None
@@ -228,7 +228,7 @@ class StateMachine:
                 raise socket.error(error_msg)
         elif self.state == GAME_END:
             #GAME_END State Handling Code
-            logging.debug("Current state: Game End")
+            logging.info("Current State: Game End")
             if self.data:
                 data = self.data
                 self.data = None

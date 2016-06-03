@@ -41,6 +41,8 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 running = False
             except struct.error, e:
                 logging.error("Caught struct.error parsing message (wrong format): {}".format(e))
+            except Exception, e:
+                logging.error("General exception caught: {}, suggesting restart but will continue processing".format(e))
         return
 
 # SERVICE - Part that implements threaded service
@@ -100,9 +102,6 @@ class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         sm_to_set = self.getStateMachineByClientID(client_id)
         self.lock.acquire()
         opp_sm = sm_to_set.opponent_sm
-        # if sm_to_set.getPlayerNum() == -1:
-        #     sm_to_set.setPlayerNum(0)
-        #     sm_to_set.setPlayerNum(1)
         if sm_to_set.getPlayerNum() == -1 and opp_sm.getPlayerNum() == 0:
             sm_to_set.setPlayerNum(1)
         elif sm_to_set.getPlayerNum() == -1 and opp_sm.getPlayerNum() == 1:
