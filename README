@@ -1,4 +1,5 @@
 BGP (Board Game Protocol)
+github: https://github.com/cs544-group8/BGP
 CS544 Computer Networks - Spring 2016 - Protocol Implementation
 Team Members: Brian Quinn, TJ Rhodes, Ryan Mann, Marc Thomson
 
@@ -22,7 +23,7 @@ Build and run Client
   	  To accept or decline a restart, enter 'y' or 'Y' or 'n' or 'N' when prompted
 
 Protocol Requirements
-  *See the Requirements_Team_8.docx file with the submission for requirements to
+  *See the Requirements_Team_8.txt file with the submission for requirements to
   code traceability
 
 Protocol Robustness
