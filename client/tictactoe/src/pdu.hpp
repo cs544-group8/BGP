@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <vector>
 using namespace std;
 
@@ -32,14 +32,14 @@ class PDU
 public:
     PDU();
     ~PDU();
-    
+
 public:
-    
+
     pduHeader m_header;
     pduPayload m_payload;
-    
+
     void buildPDU(unsigned int id, int message, string data);
-    
+
 };
 
 namespace PDUEnums
