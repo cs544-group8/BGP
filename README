@@ -9,8 +9,9 @@ Team Evaluation: See Evaluation_Team_8.txt
 
 Build and run Server:
   *Requires Python 2.7 and can run on Windows, Linux or Mac OS X
-  *run "python threadedserver.py"
-    -listens on all interfaces on port 9999
+  *change directory to the server folder
+  *to start the server run "python threadedserver.py"
+    -listens on all interfaces (ie. localhost and outward facing IP to LAN) on port 9999
 
   *to turn off debug level logging run "python threadedserver.py -q" or "python
   threadedserver.py --quiet"
