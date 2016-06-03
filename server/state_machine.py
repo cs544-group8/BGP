@@ -115,6 +115,7 @@ class StateMachine:
         elif self.state == GAME_START:
             #GAME_START State Handling Code
             logging.debug("Current state: Game Start")
+            self.player_num = -1
             while self.player_num == -1:
                 self.server.assignPlayerNum(self.client_id)
 
@@ -167,27 +168,27 @@ class StateMachine:
                             #message contains my client id, make new message that contains opponent's client id so that it can be forwarded
                             msg_to_send = message_creation.create_reset_message(self.version, self.opponent_sm.getClientID())
                             self.printMessageToSend("RESET", msg_to_send)
-                            self.opponent_sm.setCurrentState(SERVER_GAME_WAIT_RESET)
+                            self.opponent_sm.setCurrentState(RESET_WAIT)
                             self.opponent_sm.clientsocket.send(msg_to_send)
                             logging.debug("going to Server Game Reset")
-                            self.state = SERVER_GAME_RECVD_RESET
+                            self.state = RESET_RECEIVED
                     else:
                         logging.warning("message received was invalid, dropping")
             else:
                 error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
                 raise socket.error(error_msg)
-        elif self.state == SERVER_GAME_RECVD_RESET:
-            #SERVER_GAME_RECVD_RESET State Handling Code
-            logging.debug("Current state: Server Game Received Reset")
+        elif self.state == RESET_RECEIVED:
+            #RESET_RECEIVED State Handling Code
+            logging.debug("Current state: Reset Received")
             if self.data:
                 self.printMessageToSend("RESETACK", self.data)
                 self.clientsocket.send(self.data)
                 logging.debug("going to Game Start")
                 self.state = GAME_START
                 self.data = None
-        elif self.state == SERVER_GAME_WAIT_RESET:
-            #SERVER_GAME_WAIT_RESET State Handling Code
-            logging.debug("Current state: Server Game Wait Reset")
+        elif self.state == RESET_WAIT:
+            #RESET_WAIT State Handling Code
+            logging.debug("Current state: Reset Wait")
             if self.data:
                 data = self.data
                 self.data = None
@@ -195,7 +196,7 @@ class StateMachine:
                 data = self.clientsocket.recv(1024)
             if data:
                 msg_recvd = message_parsing.parse_message(data)
-                if self.state == SERVER_GAME_WAIT_RESET:
+                if self.state == RESET_WAIT:
                     if self.valid_message(msg_recvd):
                         if msg_recvd.message_type == message.RESETACK:
                             logging.debug("received RESETACK, forwarding to opponent")
@@ -286,6 +287,6 @@ ASSIGN_ID = 0x2
 FIND_OPPONENT = 0x3
 GAME_START = 0x4
 GAME_IN_PROGRESS = 0x5
-SERVER_GAME_RECVD_RESET = 0x6
-SERVER_GAME_WAIT_RESET = 0x7
+RESET_RECEIVED = 0x6
+RESET_WAIT = 0x7
 GAME_END = 0x8
