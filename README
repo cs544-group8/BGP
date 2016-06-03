@@ -37,8 +37,7 @@ Build and run Client
   	  To accept or decline a restart, enter 'y' or 'Y' or 'n' or 'N' when prompted
 
 Protocol Requirements
-  *See the Requirements_Team_8.txt file for requirements to
-  code traceability
+  *See the Requirements_Team_8.txt file for requirements to code traceability
 
 Protocol Robustness
   *BGP is fairly robust to fuzzing, but does have certain strengths and weaknesses at this point
