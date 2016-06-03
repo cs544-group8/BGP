@@ -74,11 +74,11 @@ Protocol Robustness
     -the threading mechanisms used on the BGP server side aren't perfect, so if a client happens to
     disconnect at the wrong time, the thread handling that connection may have acquired a thread lock 
     without releasing it since the client suddenly quit.  This causes all other connection threads to
-    block on that lock, effectively seizing BGP (server will still handle and accept connections but subsequent
-    states of the protocol will be broken).
+    block on that lock, effectively seizing BGP (server will still handle and accept connections but 
+    subsequent states of the protocol will be broken).
 
-    -this weakness isn't necessarily a direct blemish on the BGP protocol itself, rather how thread handling and 
-    locking were implemented on our server that implements BGP.
+    -this weakness isn't necessarily a direct blemish on the BGP protocol itself, rather how thread 
+    handling and locking were implemented on our server that implements BGP.
 
 Extra Credit
   *BGP did not implement the extra credit - the client prompts for the hostname
