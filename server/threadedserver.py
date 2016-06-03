@@ -40,7 +40,7 @@ class ThreadedRequestHandler(SocketServer.BaseRequestHandler):
                 self.server.removeFromStateMachineList(statemachine)
                 running = False
             except struct.error, e:
-                logging.error("Caught Exception parsing message (wrong format): {}".format(e))
+                logging.error("Caught struct.error parsing message (wrong format): {}".format(e))
         return
 
 # SERVICE - Part that implements threaded service

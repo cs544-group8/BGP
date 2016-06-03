@@ -67,7 +67,7 @@ class StateMachine:
                 else:
                     logging.warning("message received was invalid, dropping")
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         elif self.state == ASSIGN_ID:
             #ASSIGN_ID State Handling Code
@@ -175,7 +175,7 @@ class StateMachine:
                     else:
                         logging.warning("message received was invalid, dropping")
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         elif self.state == RESET_RECEIVED:
             #RESET_RECEIVED State Handling Code
@@ -224,7 +224,7 @@ class StateMachine:
                 else:
                     self.data = data
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         elif self.state == GAME_END:
             #GAME_END State Handling Code
@@ -252,7 +252,7 @@ class StateMachine:
                 else:
                     self.data = data
             else:
-                error_msg = "Socket read isn't blocking which means it was abrubtly closed by client without closing the socket"
+                error_msg = "Read on socket is not longer blocking. Socket closed."
                 raise socket.error(error_msg)
         else:
             raise Exception('Server in invalid state')
